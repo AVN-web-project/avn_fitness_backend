@@ -263,10 +263,6 @@ export const sendOtp = asyncHandler(async (req, res) => {
     expiresIn: 300,
   };
 
-  if (env.NODE_ENV === 'development') {
-    responseData.devOtp = otp;
-  }
-
   return ApiResponse.success(
     res,
     responseData,
@@ -601,4 +597,4 @@ export const setPassword = asyncHandler(async (req, res) => {
     { user: userObj },
     'Password set successfully'
   );
-});
+});

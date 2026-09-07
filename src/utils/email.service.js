@@ -32,21 +32,14 @@ async function getTransporter() {
 }
 
 export async function sendOtpEmail(email, otp) {
-  // Always log OTP verification banner in terminal console
-  console.log([
-    '=========================================',
-    '⚡ [AVN ATHLETICS OTP VERIFICATION]',
-    `📩 Recipient: ${email}`,
-    `🔑 Verification Code: ${otp}`,
-    '⏰ Valid for: 5 minutes',
-    '=========================================',
-  ].join('\n'));
-
   const transporter = await getTransporter();
 
-  if (transporter) {
-    try {
-      await transporter.sendMail({
+  if (!transporter) {
+    throw new Error('Email delivery is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS in .env.');
+  }
+
+  try {
+    await transporter.sendMail({
         from: `"AVN Athletics" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
         to: email,
         subject: `${otp} is your AVN Athletics verification code`,
@@ -65,15 +58,12 @@ export async function sendOtpEmail(email, otp) {
             </div>
           </div>
         `,
-      });
-      console.log(`✉️ [AVN Athletics] Verification code dispatched via SMTP to ${email}`);
-      return { success: true, method: 'smtp' };
-    } catch (error) {
-      console.warn('⚠️ SMTP dispatch fallback:', error.message);
-    }
+    });
+    console.log(`Verification email sent to ${email}`);
+    return { success: true, method: 'smtp' };
+  } catch (error) {
+    throw new Error(`Email delivery failed: ${error.message}`);
   }
-
-  return { success: true, method: transporter ? 'smtp' : 'console' };
 }
 
 function resolveItemThumbnail(item) {
