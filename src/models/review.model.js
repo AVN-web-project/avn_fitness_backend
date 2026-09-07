@@ -52,6 +52,17 @@ const reviewSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    helpful: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    helpfulVotes: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     moderationNotes: {
       type: String,
       default: '',

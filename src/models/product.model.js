@@ -92,6 +92,21 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Product description is required'],
       trim: true,
     },
+    tagline: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    badge: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    imageLight: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -119,19 +134,31 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     images: [productImageSchema],
+    gallery: [
+      {
+        id: { type: String },
+        label: { type: String },
+        image: { type: String },
+        type: { type: String },
+      },
+    ],
     specifications: [
       {
         key: { type: String, required: true, trim: true },
         value: { type: String, required: true, trim: true },
       },
     ],
+    fullSpecs: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     sizeGuide: {
       chartUrl: { type: String, trim: true },
       instructions: { type: String, trim: true },
     },
     careInstructions: {
-      type: String,
-      trim: true,
+      type: mongoose.Schema.Types.Mixed,
+      default: '',
     },
     variants: {
       type: [variantSchema],
@@ -195,6 +222,24 @@ productSchema.virtual('priceRange').get(function () {
 productSchema.virtual('totalStock').get(function () {
   if (!this.variants || this.variants.length === 0) return 0;
   return this.variants.reduce((acc, v) => (v.isActive ? acc + (v.stockQuantity || 0) : acc), 0);
+});
+
+// Virtual for primary price across active variants
+productSchema.virtual('price').get(function () {
+  if (!this.variants || this.variants.length === 0) return 0;
+  return this.variants[0].price || 0;
+});
+
+// Virtual for compare-at price
+productSchema.virtual('compareAtPrice').get(function () {
+  if (!this.variants || this.variants.length === 0) return 0;
+  return this.variants[0].compareAtPrice || 0;
+});
+
+// Virtual for primary image URL (avoids storing duplicate image field in MongoDB)
+productSchema.virtual('image').get(function () {
+  const primary = this.images?.find((img) => img.isPrimary);
+  return primary ? primary.url : (this.images?.[0]?.url || '');
 });
 
 export const Product = mongoose.model('Product', productSchema);
