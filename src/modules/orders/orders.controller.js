@@ -64,7 +64,18 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { reason } = req.body;
 
-  const order = await Order.findOne({ _id: id, user: req.user._id });
+  const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
+  if (!trimmedReason) {
+    throw ApiError.badRequest('Please provide a reason for cancellation.');
+  }
+
+  const order = await Order.findOne({
+    $or: [
+      { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+      { orderNumber: id },
+    ],
+    user: req.user._id,
+  });
   if (!order) {
     throw ApiError.notFound('Order not found');
   }
@@ -80,7 +91,7 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
   order.orderStatus = ORDER_STATUS.CANCELLED;
   order.cancellation = {
     isCancelled: true,
-    reason: reason || 'Cancelled by customer',
+    reason: trimmedReason,
     cancelledAt: new Date(),
     cancelledBy: req.user._id,
   };
@@ -89,15 +100,17 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
     status: ORDER_STATUS.CANCELLED,
     changedBy: req.user._id,
     changedByRole: req.user.role,
-    note: `Order cancelled by customer: ${reason || 'No reason provided'}`,
+    note: `Order cancelled by customer. Reason: ${trimmedReason}`,
   });
 
   // Restock inventory
   for (const item of order.items) {
-    await Product.updateOne(
-      { _id: item.product, 'variants.sku': item.variantSku },
-      { $inc: { 'variants.$.stockQuantity': item.quantity } }
-    );
+    if (item.product) {
+      await Product.updateOne(
+        { _id: item.product, 'variants.sku': item.variantSku },
+        { $inc: { 'variants.$.stockQuantity': item.quantity } }
+      );
+    }
   }
 
   await order.save();
@@ -109,11 +122,18 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { reason } = req.body;
 
-  if (!reason) {
+  const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
+  if (!trimmedReason) {
     throw ApiError.badRequest('Please provide a reason for the return request.');
   }
 
-  const order = await Order.findOne({ _id: id, user: req.user._id });
+  const order = await Order.findOne({
+    $or: [
+      { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+      { orderNumber: id },
+    ],
+    user: req.user._id,
+  });
   if (!order) {
     throw ApiError.notFound('Order not found');
   }
@@ -123,9 +143,18 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
   }
 
   order.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
+
+  // Since order was delivered, ensure COD payment status is marked captured
+  if (order.paymentInfo && order.paymentInfo.provider === 'cod') {
+    order.paymentInfo.paymentStatus = 'captured';
+    if (!order.paymentInfo.paidAt) {
+      order.paymentInfo.paidAt = new Date();
+    }
+  }
+
   order.returnRequest = {
     isRequested: true,
-    reason,
+    reason: trimmedReason,
     requestedAt: new Date(),
     status: 'pending',
     refundAmount: order.pricing.totalPayable,
@@ -136,10 +165,12 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
     status: ORDER_STATUS.RETURN_REQUESTED,
     changedBy: req.user._id,
     changedByRole: req.user.role,
-    note: `Customer requested return: ${reason}`,
+    note: `Customer requested return. Reason: ${trimmedReason}`,
   });
 
   await order.save();
 
   return ApiResponse.success(res, { order }, 'Return request submitted successfully. Our operations team will review it.');
 });
+
+

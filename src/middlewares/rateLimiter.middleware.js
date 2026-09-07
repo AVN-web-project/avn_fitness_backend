@@ -7,9 +7,10 @@ import { ApiError } from '../utils/apiError.js';
  */
 export const apiLimiter = rateLimit({
   windowMs: env.RATE_LIMIT.WINDOW_MS,
-  max: env.RATE_LIMIT.MAX,
+  max: env.NODE_ENV === 'development' ? 10000 : env.RATE_LIMIT.MAX,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => env.NODE_ENV === 'development',
   handler: (req, res, next) => {
     next(ApiError.badRequest('Too many requests from this IP. Please try again later.'));
   },
@@ -20,7 +21,7 @@ export const apiLimiter = rateLimit({
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 attempts per 15 minutes
+  max: env.NODE_ENV === 'development' ? 500 : 20, // generous in development for testing
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next) => {

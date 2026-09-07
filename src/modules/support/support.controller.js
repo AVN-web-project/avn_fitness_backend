@@ -1,4 +1,5 @@
 import { SupportRequest } from '../../models/support.model.js';
+import { Order } from '../../models/order.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -12,14 +13,39 @@ const generateTicketNumber = () => {
 export const createTicket = asyncHandler(async (req, res) => {
   const { subject, category, message, orderId, priority } = req.body;
 
+  // Normalize category mapping from frontend options
+  const categoryMap = {
+    exchange: 'return_refund',
+    return: 'return_refund',
+    delivery: 'shipping',
+    shipping: 'shipping',
+    warranty: 'product',
+    product: 'product',
+    order: 'order',
+    payment: 'payment',
+    general: 'general',
+  };
+  const normalizedCategory = categoryMap[(category || '').toLowerCase()] || 'general';
+
+  // Safely resolve orderId if passed as orderNumber or ObjectId
+  let resolvedOrderId = null;
+  if (orderId && typeof orderId === 'string' && orderId !== 'N/A') {
+    if (orderId.match(/^[0-9a-fA-F]{24}$/)) {
+      resolvedOrderId = orderId;
+    } else {
+      const matchedOrder = await Order.findOne({ orderNumber: orderId });
+      if (matchedOrder) resolvedOrderId = matchedOrder._id;
+    }
+  }
+
   const ticketNumber = generateTicketNumber();
 
   const ticket = await SupportRequest.create({
     ticketNumber,
     user: req.user._id,
-    order: orderId || null,
-    subject,
-    category: category || 'general',
+    order: resolvedOrderId,
+    subject: subject || 'Support Inquiry',
+    category: normalizedCategory,
     initialMessage: message,
     priority: priority || 'medium',
     status: SUPPORT_STATUS.OPEN,

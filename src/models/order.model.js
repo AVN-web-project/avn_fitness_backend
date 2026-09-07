@@ -6,11 +6,15 @@ const orderItemSchema = new mongoose.Schema(
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Product',
-      required: true,
+      required: false,
+    },
+    productId: {
+      type: String,
+      default: '',
     },
     variantSku: {
       type: String,
-      required: true,
+      default: 'STD-SKU',
     },
     name: {
       type: String,
@@ -18,7 +22,7 @@ const orderItemSchema = new mongoose.Schema(
     },
     variantTitle: {
       type: String,
-      required: true,
+      default: 'Standard',
     },
     image: {
       type: String,

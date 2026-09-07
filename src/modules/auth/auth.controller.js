@@ -258,12 +258,18 @@ export const sendOtp = asyncHandler(async (req, res) => {
     otp
   );
 
+  const responseData = {
+    email: normalizedEmail,
+    expiresIn: 300,
+  };
+
+  if (env.NODE_ENV === 'development') {
+    responseData.devOtp = otp;
+  }
+
   return ApiResponse.success(
     res,
-    {
-      email: normalizedEmail,
-      expiresIn: 300,
-    },
+    responseData,
     'Verification code sent successfully.'
   );
 });

@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { Product } from '../../models/product.model.js';
 import { Category } from '../../models/category.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
@@ -15,6 +16,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     minPrice,
     maxPrice,
     search,
+    q,
     sort,
     page = 1,
     limit = 20,
@@ -30,9 +32,15 @@ export const getProducts = asyncHandler(async (req, res) => {
     filter.status = PRODUCT_STATUS.ACTIVE;
   }
 
-  // Category filter
-  if (category) {
-    const categoryDoc = await Category.findOne({ slug: category });
+  // Flexible category filter (supports slug, case-insensitive name, or ALL)
+  if (category && category.toUpperCase() !== 'ALL PRODUCTS' && category.toUpperCase() !== 'ALL') {
+    const formattedSlug = category.toLowerCase().trim().replace(/\s+/g, '-');
+    const categoryDoc = await Category.findOne({
+      $or: [
+        { slug: formattedSlug },
+        { name: new RegExp(`^${category.trim()}$`, 'i') },
+      ],
+    });
     if (categoryDoc) {
       filter.category = categoryDoc._id;
     }
@@ -46,12 +54,24 @@ export const getProducts = asyncHandler(async (req, res) => {
   }
 
   // Demographics
-  if (ageGroup) filter.ageGroup = ageGroup;
-  if (gender) filter.gender = gender;
+  if (ageGroup && ageGroup.toUpperCase() !== 'ALL') {
+    filter.ageGroup = new RegExp(`^${ageGroup}$`, 'i');
+  }
+  if (gender && gender.toUpperCase() !== 'ALL') {
+    filter.gender = new RegExp(`^${gender}$`, 'i');
+  }
 
-  // Search keyword
-  if (search) {
-    filter.$text = { $search: search };
+  // Search keyword (supports 'search' or 'q' parameters with partial word matching)
+  const searchQuery = (search || q || '').trim();
+  if (searchQuery) {
+    const searchRegex = new RegExp(searchQuery, 'i');
+    filter.$or = [
+      { name: searchRegex },
+      { description: searchRegex },
+      { tagline: searchRegex },
+      { tags: searchRegex },
+      { 'specifications.value': searchRegex },
+    ];
   }
 
   // Price filtering across variants
@@ -67,7 +87,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     sortOption = { 'variants.price': 1 };
   } else if (sort === 'price_desc') {
     sortOption = { 'variants.price': -1 };
-  } else if (sort === 'rating_desc') {
+  } else if (sort === 'rating_desc' || sort === 'reviews') {
     sortOption = { ratingsAverage: -1, ratingsCount: -1 };
   } else if (sort === 'newest') {
     sortOption = { createdAt: -1 };
@@ -104,14 +124,20 @@ export const getProducts = asyncHandler(async (req, res) => {
 
 export const getProductBySlug = asyncHandler(async (req, res) => {
   const { slug } = req.params;
+  const isObjectId = mongoose.Types.ObjectId.isValid(slug);
 
-  const product = await Product.findOne({ slug: slug.toLowerCase() })
+  const product = await Product.findOne({
+    $or: [
+      { slug: slug.toLowerCase() },
+      ...(isObjectId ? [{ _id: slug }] : []),
+    ],
+  })
     .populate('category', 'name slug')
     .populate('subCategory', 'name slug')
     .populate('relatedProducts', 'name slug images variants ratingsAverage');
 
   if (!product) {
-    throw ApiError.notFound(`Product with slug '${slug}' not found`);
+    throw ApiError.notFound(`Product with identifier '${slug}' not found`);
   }
 
   // For public customers, block discontinued items from direct shopping

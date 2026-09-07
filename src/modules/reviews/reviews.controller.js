@@ -43,21 +43,40 @@ export const getProductReviews = asyncHandler(async (req, res) => {
   const limitNum = parseInt(limit, 10);
   const skip = (pageNum - 1) * limitNum;
 
-  const filter = { product: productId, status: REVIEW_STATUS.PUBLISHED };
+  // Resolve target product by ObjectId or slug
+  const product = await Product.findOne({
+    $or: [
+      { _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null },
+      { slug: productId },
+    ],
+  });
+  const targetProductId = product ? product._id : (productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null);
+
+  const filter = { product: targetProductId, status: REVIEW_STATUS.PUBLISHED };
 
   const [reviews, total] = await Promise.all([
     Review.find(filter)
       .populate('user', 'name')
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNum),
+      .limit(limitNum)
+      .lean(),
     Review.countDocuments(filter),
   ]);
+
+  const currentUserId = req.user?._id ? req.user._id.toString() : null;
+
+  const enrichedReviews = reviews.map((r) => ({
+    ...r,
+    hasVoted: currentUserId && Array.isArray(r.helpfulVotes)
+      ? r.helpfulVotes.some((v) => v.toString() === currentUserId)
+      : false,
+  }));
 
   return ApiResponse.success(
     res,
     {
-      reviews,
+      reviews: enrichedReviews,
       pagination: {
         total,
         page: pageNum,
@@ -72,10 +91,15 @@ export const getProductReviews = asyncHandler(async (req, res) => {
 export const createReview = asyncHandler(async (req, res) => {
   const { productId, rating, title, comment, images } = req.body;
 
-  const product = await Product.findById(productId);
+  const product = await Product.findOne({
+    $or: [
+      { _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null },
+      { slug: productId },
+    ],
+  });
   if (!product) throw ApiError.notFound('Product not found');
 
-  const existing = await Review.findOne({ product: productId, user: req.user._id });
+  const existing = await Review.findOne({ product: product._id, user: req.user._id });
   if (existing) {
     throw ApiError.badRequest('You have already submitted a review for this product.');
   }
@@ -83,12 +107,16 @@ export const createReview = asyncHandler(async (req, res) => {
   // Check if verified purchase (delivered order containing this product)
   const verifiedOrder = await Order.findOne({
     user: req.user._id,
-    'items.product': productId,
+    $or: [
+      { 'items.product': product._id },
+      { 'items.productId': product.slug },
+      { 'items.productId': product._id.toString() },
+    ],
     orderStatus: ORDER_STATUS.DELIVERED,
   });
 
   const review = await Review.create({
-    product: productId,
+    product: product._id,
     user: req.user._id,
     order: verifiedOrder ? verifiedOrder._id : null,
     rating,
@@ -99,7 +127,7 @@ export const createReview = asyncHandler(async (req, res) => {
     isVerifiedPurchase: !!verifiedOrder,
   });
 
-  await updateProductRatingStats(productId);
+  await updateProductRatingStats(product._id);
 
   return ApiResponse.success(res, { review }, 'Review submitted successfully', 201);
 });
@@ -169,3 +197,76 @@ export const moderateReview = asyncHandler(async (req, res) => {
 
   return ApiResponse.success(res, { review }, `Review status updated to '${status}'`);
 });
+
+/**
+ * Mark review as helpful (Allow only one upvote per user, toggle to undo)
+ */
+export const markReviewHelpful = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+    throw ApiError.badRequest('Invalid review ID');
+  }
+
+  const userId = req.user._id;
+
+  // Check if review exists
+  const existingReview = await Review.findById(id);
+  if (!existingReview) {
+    throw ApiError.notFound('Review not found');
+  }
+
+  const hasAlreadyVoted = Array.isArray(existingReview.helpfulVotes) &&
+    existingReview.helpfulVotes.some((v) => v.toString() === userId.toString());
+
+  let updatedReview;
+  let hasVoted = false;
+
+  if (hasAlreadyVoted) {
+    // User has already voted -> Toggle off (undo helpful vote)
+    updatedReview = await Review.findOneAndUpdate(
+      { _id: id, helpfulVotes: userId },
+      {
+        $pull: { helpfulVotes: userId },
+        $inc: { helpful: -1 },
+      },
+      { new: true }
+    );
+    hasVoted = false;
+  } else {
+    // User has not voted -> Add helpful vote (prevent duplicate via $ne filter)
+    updatedReview = await Review.findOneAndUpdate(
+      { _id: id, helpfulVotes: { $ne: userId } },
+      {
+        $addToSet: { helpfulVotes: userId },
+        $inc: { helpful: 1 },
+      },
+      { new: true }
+    );
+    hasVoted = true;
+  }
+
+  // Fallback if atomic condition was raced
+  if (!updatedReview) {
+    updatedReview = await Review.findById(id);
+    hasVoted = Array.isArray(updatedReview.helpfulVotes) &&
+      updatedReview.helpfulVotes.some((v) => v.toString() === userId.toString());
+  }
+
+  // Ensure helpful counter never falls below 0
+  if (updatedReview.helpful < 0) {
+    updatedReview.helpful = 0;
+    await updatedReview.save();
+  }
+
+  return ApiResponse.success(
+    res,
+    {
+      id: updatedReview._id,
+      helpful: updatedReview.helpful,
+      hasVoted,
+    },
+    hasVoted ? 'Marked review as helpful' : 'Removed helpful vote'
+  );
+});
+
