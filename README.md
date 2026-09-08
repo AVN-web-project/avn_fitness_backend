@@ -105,6 +105,7 @@ npm start
 ## Key API Endpoints
 
 ### Health & Diagnostics
+- `GET /` - Deployment/API status
 - `GET /health` or `GET /api/v1/health`
 
 ### Authentication & Profile (`/api/v1/auth`)
