@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 ﻿import crypto from 'crypto';
 import bcrypt from 'bcrypt';
+=======
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+>>>>>>> d985d6fdce7f73c7d1439ebe6ce0dad788e91007
 
 import { User } from '../../models/user.model.js';
 import { Staff } from '../../models/staff.model.js';

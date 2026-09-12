@@ -26,9 +26,30 @@ import inventoryRoutes from './modules/inventory/inventory.routes.js';
 
 const app = express();
 
+// Normalize URL for serverless environments (Vercel rewrites)
+app.use((req, res, next) => {
+  if (req.url && (req.url.startsWith('/api/index.js') || req.url.startsWith('/api/index') || req.url === '/api')) {
+    if (req.originalUrl && req.originalUrl !== req.url) {
+      req.url = req.originalUrl;
+    }
+  }
+  next();
+});
+
+// Root API Landing / Info endpoint
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'AVN Fitness Backend API is running',
+    health: '/health',
+    api: `${env.API_PREFIX}/health`,
+  });
+});
+
 // Security HTTP headers
 app.use(helmet());
 
+<<<<<<< HEAD
 // Dynamic CORS configuration allowing customer & admin frontends
 const allowedOrigins = [
   env.CLIENT_URL,
@@ -52,6 +73,47 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization', 'x-guest-id'],
   })
 );
+=======
+// CORS configuration supporting localhost, Vercel frontend, and configured CLIENT_URL
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+];
+
+if (env.CLIENT_URL) {
+  env.CLIENT_URL.split(',').forEach((u) => {
+    const trimmed = u.trim();
+    if (trimmed && !allowedOrigins.includes(trimmed)) {
+      allowedOrigins.push(trimmed);
+    }
+  });
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (
+      allowedOrigins.includes(origin) ||
+      allowedOrigins.includes('*') ||
+      origin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-guest-id', 'Accept', 'Origin', 'X-Requested-With'],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+>>>>>>> d985d6fdce7f73c7d1439ebe6ce0dad788e91007
 
 // Request parsing & compression
 app.use(express.json({ limit: '10mb' }));

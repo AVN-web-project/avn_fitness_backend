@@ -5,7 +5,7 @@ import { logger } from './logger.js';
 let isConnected = false;
 
 export const connectDB = async () => {
-  if (isConnected) {
+  if (isConnected && mongoose.connection.readyState === 1) {
     logger.info('Using existing database connection');
     return;
   }
@@ -20,9 +20,11 @@ export const connectDB = async () => {
     logger.info(`MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
   } catch (error) {
     logger.error(`MongoDB Connection Error: ${error.message}`);
-    if (env.NODE_ENV === 'production') {
+    isConnected = false;
+    if (env.NODE_ENV === 'production' && !process.env.VERCEL) {
       process.exit(1);
     }
+    throw error;
   }
 };
 
