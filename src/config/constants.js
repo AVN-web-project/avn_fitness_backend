@@ -4,9 +4,16 @@
  */
 
 export const ROLES = Object.freeze({
-  USER: 'user',
-  OPERATIONS: 'operations',
+  SUPER_ADMIN: 'super_admin',
   ADMIN: 'admin',
+  OPERATIONS: 'operations',
+  PRODUCT_INVENTORY_MANAGER: 'product_inventory_manager',
+  ORDER_MANAGER: 'order_manager',
+  CUSTOMER_SUPPORT_EXECUTIVE: 'customer_support_executive',
+  CUSTOMER_SUPPORT: 'customer_support',
+  MARKETING_MANAGER: 'marketing_manager',
+  FINANCE_MANAGER: 'finance_manager',
+  USER: 'user',
 });
 
 export const ALL_ROLES = Object.values(ROLES);
@@ -129,3 +136,135 @@ export const ENTITY_TYPES = Object.freeze({
   SUPPORT_REQUEST: 'SupportRequest',
   ACTIVITY_LOG: 'ActivityLog',
 });
+
+export const LOG_DOMAINS = Object.freeze({
+  PRODUCTS: 'PRODUCTS',
+  INVENTORY: 'INVENTORY',
+  CATEGORIES: 'CATEGORIES',
+  ORDERS: 'ORDERS',
+  SHIPMENTS: 'SHIPMENTS',
+  RETURNS: 'RETURNS',
+  REFUNDS: 'REFUNDS',
+  CUSTOMER_SUPPORT: 'CUSTOMER_SUPPORT',
+  MARKETING: 'MARKETING',
+  COUPONS: 'COUPONS',
+  REVIEWS: 'REVIEWS',
+  FINANCE: 'FINANCE',
+  PAYMENTS: 'PAYMENTS',
+  STAFF: 'STAFF',
+  SYSTEM: 'SYSTEM',
+});
+
+// Domain mappings allowed for non-super_admin activity log visibility
+export const ROLE_LOG_DOMAINS = {
+  [ROLES.SUPER_ADMIN]: null,
+  [ROLES.ADMIN]: null,
+  [ROLES.PRODUCT_INVENTORY_MANAGER]: [
+    LOG_DOMAINS.PRODUCTS,
+    LOG_DOMAINS.INVENTORY,
+    LOG_DOMAINS.CATEGORIES,
+  ],
+  [ROLES.ORDER_MANAGER]: [
+    LOG_DOMAINS.ORDERS,
+    LOG_DOMAINS.SHIPMENTS,
+    LOG_DOMAINS.RETURNS,
+    LOG_DOMAINS.REFUNDS,
+  ],
+  [ROLES.CUSTOMER_SUPPORT_EXECUTIVE]: [LOG_DOMAINS.CUSTOMER_SUPPORT],
+  [ROLES.CUSTOMER_SUPPORT]: [LOG_DOMAINS.CUSTOMER_SUPPORT],
+  [ROLES.MARKETING_MANAGER]: [
+    LOG_DOMAINS.MARKETING,
+    LOG_DOMAINS.COUPONS,
+    LOG_DOMAINS.REVIEWS,
+  ],
+  [ROLES.FINANCE_MANAGER]: [
+    LOG_DOMAINS.FINANCE,
+    LOG_DOMAINS.PAYMENTS,
+    LOG_DOMAINS.REFUNDS,
+  ],
+  [ROLES.OPERATIONS]: [
+    LOG_DOMAINS.ORDERS,
+    LOG_DOMAINS.SHIPMENTS,
+    LOG_DOMAINS.INVENTORY,
+    LOG_DOMAINS.PRODUCTS,
+  ],
+};
+
+// Fine-grained action-level permissions
+export const ROLE_PERMISSIONS = {
+  [ROLES.SUPER_ADMIN]: ['*'],
+  [ROLES.ADMIN]: ['*'],
+  [ROLES.PRODUCT_INVENTORY_MANAGER]: [
+    'products.view',
+    'products.create',
+    'products.edit',
+    'products.delete',
+    'categories.view',
+    'categories.manage',
+    'inventory.view',
+    'inventory.update',
+    'inventory.adjust',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.ORDER_MANAGER]: [
+    'orders.view',
+    'orders.process',
+    'orders.update_status',
+    'shipments.view',
+    'shipments.update',
+    'returns.view',
+    'returns.process',
+    'refunds.view',
+    'refunds.process',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.CUSTOMER_SUPPORT_EXECUTIVE]: [
+    'support.view',
+    'support.reply',
+    'support.update',
+    'support.assign',
+    'orders.view',
+    'shipments.view',
+    'customers.view',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.CUSTOMER_SUPPORT]: [
+    'support.view',
+    'support.reply',
+    'support.update',
+    'support.assign',
+    'orders.view',
+    'shipments.view',
+    'customers.view',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.MARKETING_MANAGER]: [
+    'coupons.view',
+    'coupons.create',
+    'coupons.edit',
+    'coupons.activate',
+    'reviews.view',
+    'reviews.moderate',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.FINANCE_MANAGER]: [
+    'payments.view',
+    'payments.process',
+    'finance.reports',
+    'refunds.view',
+    'refunds.process',
+    'activity_logs.view_scoped',
+  ],
+  [ROLES.OPERATIONS]: [
+    'orders.view',
+    'orders.process',
+    'orders.update_status',
+    'shipments.view',
+    'shipments.update',
+    'inventory.view',
+    'inventory.update',
+    'inventory.adjust',
+    'products.view',
+    'activity_logs.view_scoped',
+  ],
+};

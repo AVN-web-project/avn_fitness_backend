@@ -1,11 +1,27 @@
 import mongoose from 'mongoose';
-import { ACTIVITY_ACTIONS, ENTITY_TYPES, ROLES } from '../config/constants.js';
+import { ACTIVITY_ACTIONS, ENTITY_TYPES, ROLES, LOG_DOMAINS } from '../config/constants.js';
+import { STAFF_ROLES } from './staff.model.js';
+
+const ALL_STAFF_ROLES = Array.from(
+  new Set([
+    ...Object.values(ROLES),
+    ...(STAFF_ROLES ? Object.values(STAFF_ROLES) : []),
+    'super_admin',
+    'product_inventory_manager',
+    'order_manager',
+    'customer_support',
+    'customer_support_executive',
+    'marketing_manager',
+    'finance_manager',
+    'admin',
+    'operations',
+  ])
+);
 
 const activityLogSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
       required: true,
       index: true,
     },
@@ -16,8 +32,15 @@ const activityLogSchema = new mongoose.Schema(
     },
     userRole: {
       type: String,
-      enum: [ROLES.ADMIN, ROLES.OPERATIONS],
+      enum: ALL_STAFF_ROLES,
       required: true,
+      index: true,
+    },
+    domain: {
+      type: String,
+      enum: Object.values(LOG_DOMAINS),
+      default: LOG_DOMAINS.PRODUCTS,
+      index: true,
     },
     action: {
       type: String,
@@ -51,6 +74,8 @@ const activityLogSchema = new mongoose.Schema(
 );
 
 activityLogSchema.index({ createdAt: -1 });
+activityLogSchema.index({ domain: 1, createdAt: -1 });
 activityLogSchema.index({ action: 1, createdAt: -1 });
 
-export const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
+export const ActivityLog = mongoose.model('ActivityLog', activityLogSchema, 'staffActivityLogs_m');
+export default ActivityLog;

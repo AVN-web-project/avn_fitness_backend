@@ -87,4 +87,4 @@ couponSchema.methods.isValid = function (cartTotal, userId) {
   return { valid: true };
 };
 
-export const Coupon = mongoose.model('Coupon', couponSchema);
+export const Coupon = mongoose.model('Coupon', couponSchema, 'coupons_m');

@@ -55,4 +55,4 @@ const shipmentSchema = new mongoose.Schema(
   }
 );
 
-export const Shipment = mongoose.model('Shipment', shipmentSchema);
+export const Shipment = mongoose.model('Shipment', shipmentSchema, 'shipments_m');

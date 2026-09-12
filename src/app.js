@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -22,16 +22,31 @@ import adminRoutes from './modules/admin/admin.routes.js';
 import couponRoutes from './modules/coupons/coupons.routes.js';
 import reviewRoutes from './modules/reviews/reviews.routes.js';
 import supportRoutes from './modules/support/support.routes.js';
+import inventoryRoutes from './modules/inventory/inventory.routes.js';
 
 const app = express();
 
 // Security HTTP headers
 app.use(helmet());
 
-// CORS configuration
+// Dynamic CORS configuration allowing customer & admin frontends
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:3000',
+  'http://localhost:3001',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-guest-id'],
@@ -68,6 +83,7 @@ app.use(`${env.API_PREFIX}/admin`, adminRoutes);
 app.use(`${env.API_PREFIX}/coupons`, couponRoutes);
 app.use(`${env.API_PREFIX}/reviews`, reviewRoutes);
 app.use(`${env.API_PREFIX}/support`, supportRoutes);
+app.use(`${env.API_PREFIX}/inventory`, inventoryRoutes);
 
 // Catch 404 & Central error handling
 app.use(notFoundHandler);

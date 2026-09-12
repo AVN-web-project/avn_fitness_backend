@@ -90,4 +90,4 @@ const supportSchema = new mongoose.Schema(
 supportSchema.index({ user: 1, status: 1 });
 supportSchema.index({ status: 1, createdAt: -1 });
 
-export const SupportRequest = mongoose.model('SupportRequest', supportSchema);
+export const SupportRequest = mongoose.model('SupportRequest', supportSchema, 'supportRequests_m');

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Product } from '../../models/product.model.js';
+import { Inventory } from '../../models/inventory.model.js';
 import { Category } from '../../models/category.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
@@ -194,6 +195,25 @@ export const createProduct = asyncHandler(async (req, res) => {
     status: PRODUCT_STATUS.ACTIVE,
   });
 
+  // Sync initial variants into inventory_m collection
+  for (const v of variants) {
+    await Inventory.findOneAndUpdate(
+      { sku: v.sku },
+      {
+        product: product._id,
+        productName: product.name,
+        sku: v.sku,
+        variantTitle: v.title || `${v.size || ''} ${v.color || ''}`.trim() || 'Standard',
+        size: v.size || 'Standard',
+        color: v.color || 'Standard',
+        stockQuantity: Number(v.stockQuantity) || 0,
+        price: Number(v.price) || 0,
+        lastRestockedAt: new Date(),
+      },
+      { upsert: true }
+    );
+  }
+
   await recordActivityLog({
     user: req.user,
     action: ACTIVITY_ACTIONS.PRODUCT_CREATED,
@@ -238,6 +258,18 @@ export const updateProduct = asyncHandler(async (req, res) => {
   });
 
   await product.save();
+
+  // Dual-sync to inventory_m collection
+  await Inventory.findOneAndUpdate(
+    { sku },
+    {
+      product: product._id,
+      productName: product.name,
+      stockQuantity: Number(stockQuantity),
+      lastRestockedAt: new Date(),
+    },
+    { upsert: true }
+  );
 
   await recordActivityLog({
     user: req.user,

@@ -8,20 +8,21 @@ import {
   updateOrderStatus,
   updateShippingAndDispatch,
 } from './operations.controller.js';
-import { requireAuth, requireRole } from '../../middlewares/auth.middleware.js';
-import { ROLES } from '../../config/constants.js';
+import { requireAuth, requireAnyPermission } from '../../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Protect all operations endpoints for Operations and Admin
-router.use(requireAuth, requireRole(ROLES.OPERATIONS, ROLES.ADMIN));
+router.use(requireAuth);
 
+// Dashboard view accessible to all operations & management staff
 router.get('/dashboard', getOperationsDashboard);
-router.get('/orders', getOperationsOrders);
-router.patch('/orders/:id/status', updateOrderStatus);
-router.patch('/orders/:id/dispatch', updateShippingAndDispatch);
-router.patch('/orders/:id/deliver', confirmDelivery);
-router.post('/orders/:id/returns/review', reviewReturnRequest);
-router.post('/orders/:id/refund', recordRefund);
+
+// Order fulfillment & shipping
+router.get('/orders', requireAnyPermission(['orders.view', 'shipments.view']), getOperationsOrders);
+router.patch('/orders/:id/status', requireAnyPermission(['orders.update_status', 'orders.process']), updateOrderStatus);
+router.patch('/orders/:id/dispatch', requireAnyPermission(['shipments.update']), updateShippingAndDispatch);
+router.patch('/orders/:id/deliver', requireAnyPermission(['shipments.update', 'orders.process']), confirmDelivery);
+router.post('/orders/:id/returns/review', requireAnyPermission(['returns.process']), reviewReturnRequest);
+router.post('/orders/:id/refund', requireAnyPermission(['refunds.process']), recordRefund);
 
 export default router;
