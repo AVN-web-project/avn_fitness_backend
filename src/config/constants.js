@@ -20,6 +20,7 @@ export const ALL_ROLES = Object.values(ROLES);
 
 export const PRODUCT_STATUS = Object.freeze({
   ACTIVE: 'active',
+  INACTIVE: 'inactive',
   UNAVAILABLE: 'unavailable',
   DISCONTINUED: 'discontinued',
 });
@@ -124,6 +125,12 @@ export const ACTIVITY_ACTIONS = Object.freeze({
   // Support
   SUPPORT_REQUEST_UPDATED: 'SUPPORT_REQUEST_UPDATED',
   SUPPORT_REPLIED: 'SUPPORT_REPLIED',
+
+  // Staff Management & Access
+  STAFF_CREATED: 'STAFF_CREATED',
+  STAFF_STATUS_CHANGED: 'STAFF_STATUS_CHANGED',
+  STAFF_ROLE_UPDATED: 'STAFF_ROLE_UPDATED',
+  STAFF_DELETED: 'STAFF_DELETED',
 });
 
 export const ENTITY_TYPES = Object.freeze({
@@ -134,6 +141,7 @@ export const ENTITY_TYPES = Object.freeze({
   COUPON: 'Coupon',
   REVIEW: 'Review',
   SUPPORT_REQUEST: 'SupportRequest',
+  STAFF: 'Staff',
   ACTIVITY_LOG: 'ActivityLog',
 });
 

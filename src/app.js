@@ -1,3 +1,4 @@
+import path from 'path';
 ﻿import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -49,31 +50,6 @@ app.get('/', (req, res) => {
 // Security HTTP headers
 app.use(helmet());
 
-<<<<<<< HEAD
-// Dynamic CORS configuration allowing customer & admin frontends
-const allowedOrigins = [
-  env.CLIENT_URL,
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5175',
-  'http://localhost:3000',
-  'http://localhost:3001',
-].filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || env.NODE_ENV === 'development') {
-        return callback(null, true);
-      }
-      return callback(new Error(`Origin ${origin} not allowed by CORS`));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-guest-id'],
-  })
-);
-=======
 // CORS configuration supporting localhost, Vercel frontend, and configured CLIENT_URL
 const allowedOrigins = [
   'http://localhost:5173',
@@ -113,9 +89,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
->>>>>>> d985d6fdce7f73c7d1439ebe6ce0dad788e91007
 
 // Request parsing & compression
+app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(env.COOKIE_SECRET));

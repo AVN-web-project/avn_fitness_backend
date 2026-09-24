@@ -50,6 +50,10 @@ const inventorySchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
     lastRestockedAt: {
       type: Date,
       default: Date.now,

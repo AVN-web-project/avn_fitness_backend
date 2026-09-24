@@ -1,3 +1,5 @@
+import path from 'path';
+import fs from 'fs';
 import mongoose from 'mongoose';
 import { Product } from '../../models/product.model.js';
 import { Inventory } from '../../models/inventory.model.js';
@@ -26,10 +28,15 @@ export const getProducts = asyncHandler(async (req, res) => {
 
   const filter = {};
 
-  // For public users, only show active products
-  if (req.user && (req.user.role === 'admin' || req.user.role === 'operations') && status) {
-    filter.status = status;
+    // For staff/admin management, return all products (both active & inactive) unless specific status requested
+  const isManagement = req.user || req.admin;
+  if (isManagement) {
+    if (status && status !== 'all') {
+      filter.status = status;
+    }
+    // If no specific status query, do not restrict filter.status so all products are displayed in admin
   } else {
+    // For public customer storefront, only show active products
     filter.status = PRODUCT_STATUS.ACTIVE;
   }
 
@@ -157,6 +164,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     name,
     slug,
     description,
+    tagline,
+    badge,
     category,
     subCategory,
     ageGroup,
@@ -168,50 +177,78 @@ export const createProduct = asyncHandler(async (req, res) => {
     variants,
     relatedProducts,
     tags,
+    status,
+    price,
+    pricing,
   } = req.body;
 
-  const generatedSlug = (slug || name).toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const generatedSlug = slug || slugify(name, { lower: true, strict: true });
 
   const existing = await Product.findOne({ slug: generatedSlug });
   if (existing) {
     throw ApiError.conflict('A product with this slug already exists.');
   }
 
+  const normalizedVariants = variants && variants.length > 0 ? variants : [
+    {
+      sku: `${name.replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`,
+      title: 'Standard',
+      size: 'Standard',
+      color: 'Standard',
+      price: Number(price || pricing?.basePrice) || 499,
+      compareAtPrice: Number(pricing?.compareAtPrice) || 0,
+      stockQuantity: 50,
+      isActive: true,
+    }
+  ];
+
+  const primaryPrice = normalizedVariants[0]?.price || Number(price) || 499;
+
   const product = await Product.create({
     name,
     slug: generatedSlug,
     description,
+    tagline: tagline || '',
+    badge: badge || '',
     category,
     subCategory: subCategory || null,
-    ageGroup,
-    gender,
-    images: images || [],
+    ageGroup: ageGroup || 'all',
+    gender: gender || 'unisex',
+    images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
     specifications: specifications || [],
     sizeGuide,
-    careInstructions,
-    variants,
+    careInstructions: careInstructions || '',
+    variants: normalizedVariants,
     relatedProducts: relatedProducts || [],
     tags: tags || [],
-    status: PRODUCT_STATUS.ACTIVE,
+    status: status || PRODUCT_STATUS.ACTIVE,
+    price: primaryPrice,
+    pricing: {
+      basePrice: primaryPrice,
+      compareAtPrice: normalizedVariants[0]?.compareAtPrice || 0,
+    },
   });
 
   // Sync initial variants into inventory_m collection
-  for (const v of variants) {
-    await Inventory.findOneAndUpdate(
-      { sku: v.sku },
-      {
-        product: product._id,
-        productName: product.name,
-        sku: v.sku,
-        variantTitle: v.title || `${v.size || ''} ${v.color || ''}`.trim() || 'Standard',
-        size: v.size || 'Standard',
-        color: v.color || 'Standard',
-        stockQuantity: Number(v.stockQuantity) || 0,
-        price: Number(v.price) || 0,
-        lastRestockedAt: new Date(),
-      },
-      { upsert: true }
-    );
+  for (const v of normalizedVariants) {
+    if (v.sku) {
+      await Inventory.findOneAndUpdate(
+        { sku: v.sku.toUpperCase() },
+        {
+          product: product._id,
+          productName: product.name,
+          sku: v.sku.toUpperCase(),
+          variantTitle: v.title || `${v.size || ''} ${v.color || ''}`.trim() || 'Standard',
+          size: v.size || 'Standard',
+          color: v.color || 'Standard',
+          stockQuantity: Number(v.stockQuantity) || 0,
+          price: Number(v.price) || 0,
+          isAvailable: v.isActive !== false,
+          lastRestockedAt: new Date(),
+        },
+        { upsert: true }
+      );
+    }
   }
 
   await recordActivityLog({
@@ -219,7 +256,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     action: ACTIVITY_ACTIONS.PRODUCT_CREATED,
     targetEntity: ENTITY_TYPES.PRODUCT,
     targetEntityId: product._id,
-    details: { name: product.name, slug: product.slug, variantCount: variants.length },
+    details: { name: product.name, slug: product.slug, variantCount: normalizedVariants.length },
     ipAddress: req.ip,
   });
 
@@ -237,11 +274,15 @@ export const updateProduct = asyncHandler(async (req, res) => {
   // Update allowed fields
   const allowedUpdates = [
     'name',
+    'slug',
     'description',
+    'tagline',
+    'badge',
     'category',
     'subCategory',
     'ageGroup',
     'gender',
+    'status',
     'images',
     'specifications',
     'sizeGuide',
@@ -249,6 +290,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
     'variants',
     'relatedProducts',
     'tags',
+    'price',
+    'pricing',
   ];
 
   allowedUpdates.forEach((field) => {
@@ -259,17 +302,29 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   await product.save();
 
-  // Dual-sync to inventory_m collection
-  await Inventory.findOneAndUpdate(
-    { sku },
-    {
-      product: product._id,
-      productName: product.name,
-      stockQuantity: Number(stockQuantity),
-      lastRestockedAt: new Date(),
-    },
-    { upsert: true }
-  );
+  // Dual-sync variants to inventory_m collection
+  if (product.variants && product.variants.length > 0) {
+    for (const v of product.variants) {
+      if (v.sku) {
+        await Inventory.findOneAndUpdate(
+          { sku: v.sku.toUpperCase() },
+          {
+            product: product._id,
+            productName: product.name,
+            sku: v.sku.toUpperCase(),
+            variantTitle: v.title || `${v.size || ''} ${v.color || ''}`.trim() || 'Standard',
+            size: v.size || 'Standard',
+            color: v.color || 'Standard',
+            stockQuantity: Number(v.stockQuantity) || 0,
+            price: Number(v.price) || 0,
+            isAvailable: v.isActive !== false,
+            lastRestockedAt: new Date(),
+          },
+          { upsert: true }
+        );
+      }
+    }
+  }
 
   await recordActivityLog({
     user: req.user,
@@ -283,9 +338,6 @@ export const updateProduct = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, { product }, 'Product updated successfully');
 });
 
-/**
- * Status Transition enforcing Non-Deletion Policy
- */
 export const updateProductStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -346,4 +398,61 @@ export const updateInventory = asyncHandler(async (req, res) => {
   });
 
   return ApiResponse.success(res, { product }, `Inventory for SKU '${sku}' updated to ${stockQuantity}`);
+});
+
+
+/**
+ * Upload Product Image File (Base64 / Binary)
+ * POST /api/v1/products/upload-image
+ */
+export const uploadProductImage = asyncHandler(async (req, res) => {
+  const { imageBase64, fileName, altText } = req.body;
+
+  if (!imageBase64) {
+    throw ApiError.badRequest('Image data (base64) is required');
+  }
+
+  // Extract base64 payload and mime extension
+  const matches = imageBase64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+  let ext = 'png';
+  let buffer;
+
+  if (matches && matches.length === 3) {
+    const mimeType = matches[1].toLowerCase();
+    if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
+    else if (mimeType.includes('webp')) ext = 'webp';
+    else if (mimeType.includes('svg')) ext = 'svg';
+    else if (mimeType.includes('gif')) ext = 'gif';
+    buffer = Buffer.from(matches[2], 'base64');
+  } else {
+    buffer = Buffer.from(imageBase64, 'base64');
+  }
+
+  const cleanName = (fileName || 'product')
+    .toLowerCase()
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .substring(0, 35);
+
+  const uniqueName = `${cleanName}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}.${ext}`;
+  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'products');
+
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const filePath = path.join(uploadDir, uniqueName);
+  fs.writeFileSync(filePath, buffer);
+
+  const imageUrl = `/uploads/products/${uniqueName}`;
+
+  return ApiResponse.success(
+    res,
+    {
+      url: imageUrl,
+      fileName: uniqueName,
+      altText: altText || cleanName.replace(/-/g, ' '),
+    },
+    'Image file uploaded successfully'
+  );
 });

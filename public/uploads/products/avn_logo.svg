@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1088" height="1088" viewBox="0 0 1088 1088">
+  <title>AVN Logo</title>
+  <desc>Stylized AVN mark in white and red on a black background.</desc>
+  <rect width="1088" height="1088" fill="#000000"/>
+  <path fill="#FFFFFF" d="M241 386 L67 694 L141 694 L241 517 L341 694 L419 694 Z"/>
+  <path fill="#F3182A" d="M280 387 L355 387 L455 562 L556 387 L631 387 L455 690 Z"/>
+  <path fill="#FFFFFF" d="M668 387 L527 694 L601 694 L701 517 L801 694 L874 694 L1014 387 L940 387 L839 561 L739 387 Z"/>
+</svg>

@@ -7,6 +7,8 @@ import {
   getStaff,
   createStaff,
   toggleStaffStatus,
+  getPaymentsList,
+  getReturnsAndCancellations,
 } from './admin.controller.js';
 import {
   requireAuth,
@@ -23,6 +25,10 @@ router.get('/activity-logs', requireAuth, getActivityLogs);
 
 // Analytics overview (accessible to all authenticated management staff)
 router.get('/analytics', requireAuth, getAdminAnalytics);
+
+// Finance & Processed Payments
+router.get('/payments', requireAuth, requireAnyPermission(['payments.view', 'finance.reports']), getPaymentsList);
+router.get('/returns-cancellations', requireAuth, requireAnyPermission(['returns.process', 'refunds.process', 'orders.view']), getReturnsAndCancellations);
 
 // Customer Directory
 router.get(
