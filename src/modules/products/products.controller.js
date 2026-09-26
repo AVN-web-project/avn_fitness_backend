@@ -10,6 +10,12 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ACTIVITY_ACTIONS, ENTITY_TYPES, PRODUCT_STATUS } from '../../config/constants.js';
 
+const slugify = (value) => String(value || '')
+  .trim()
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+
 export const getProducts = asyncHandler(async (req, res) => {
   const {
     category,

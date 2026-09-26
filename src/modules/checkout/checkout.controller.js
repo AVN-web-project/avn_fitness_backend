@@ -144,9 +144,9 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
   const orderNumber = generateOrderNumber();
   const provider = (req.body.paymentMethodType || paymentMethod || paymentProvider || 'cod').toLowerCase();
   const isCod = provider === 'cod';
-  const orderStatus = ORDER_STATUS.PROCESSING;
-  const paymentStatus = isCod ? PAYMENT_STATUS.PENDING : PAYMENT_STATUS.CAPTURED;
-  const paidAt = isCod ? undefined : new Date();
+  const orderStatus = isCod ? ORDER_STATUS.PROCESSING : ORDER_STATUS.PENDING_PAYMENT;
+  const paymentStatus = PAYMENT_STATUS.PENDING;
+  const paidAt = undefined;
   const transactionId = req.body.transactionId || `TXN-${Date.now().toString().slice(-8)}`;
 
   // Create genuine order in MongoDB database

@@ -14,9 +14,9 @@ const inferDomain = (action, targetEntity) => {
   return LOG_DOMAINS.SYSTEM;
 };
 
-/**
- * Record an activity audit log entry
- */
+/*
+    Record an activity audit log entry
+*/
 export const recordActivityLog = async ({
   user,
   action,
@@ -30,16 +30,21 @@ export const recordActivityLog = async ({
     if (!user) return null;
 
     const assignedDomain = domain || inferDomain(action, targetEntity);
+    const employeeId = user.employeeId || user.employeeID || user.employee_id || null;
 
     const log = await ActivityLog.create({
       user: user._id,
       userName: user.name,
+      employeeId,
       userRole: user.role,
       domain: assignedDomain,
       action,
       targetEntity,
       targetEntityId: targetEntityId ? String(targetEntityId) : null,
-      details,
+      details: {
+        ...details,
+        employeeId,
+      },
       ipAddress,
     });
 

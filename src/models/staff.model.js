@@ -2,16 +2,15 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { ROLES } from '../config/constants.js';
+import { EMPLOYEE_ID_PREFIXES, calculateNextEmployeeId } from '../utils/employeeId.js';
 
 export const STAFF_ROLES = Object.freeze({
-  SUPER_ADMIN: 'super_admin',
-  PRODUCT_INVENTORY_MANAGER: 'product_inventory_manager',
-  ORDER_MANAGER: 'order_manager',
-  CUSTOMER_SUPPORT: 'customer_support',
-  MARKETING_MANAGER: 'marketing_manager',
-  FINANCE_MANAGER: 'finance_manager',
-  ADMIN: 'admin',
-  OPERATIONS: 'operations',
+  PRODUCT_INVENTORY_MANAGER: ROLES.PRODUCT_INVENTORY_MANAGER,
+  ORDER_MANAGER: ROLES.ORDER_MANAGER,
+  CUSTOMER_SUPPORT: ROLES.CUSTOMER_SUPPORT,
+  MARKETING_MANAGER: ROLES.MARKETING_MANAGER,
+  FINANCE_MANAGER: ROLES.FINANCE_MANAGER,
 });
 
 const staffSchema = new mongoose.Schema(
@@ -42,7 +41,7 @@ const staffSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: Object.values(STAFF_ROLES),
-      default: STAFF_ROLES.OPERATIONS,
+      default: STAFF_ROLES.PRODUCT_INVENTORY_MANAGER,
       required: true,
     },
     permissions: {
@@ -52,6 +51,13 @@ const staffSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
+    },
+    employeeId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      index: true,
     },
     isActive: {
       type: Boolean,
@@ -65,6 +71,19 @@ const staffSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+staffSchema.pre('validate', async function (next) {
+  if (this.role === 'super_admin') {
+    return next(new Error('Super admin accounts must be created in the admin_m collection.'));
+  }
+
+  if (!this.employeeId) {
+    const Model = this.constructor;
+    const existingIds = await Model.find({ employeeId: { $regex: `^${EMPLOYEE_ID_PREFIXES.staff}-` } }, 'employeeId').lean();
+    this.employeeId = calculateNextEmployeeId(existingIds.map((doc) => doc.employeeId), EMPLOYEE_ID_PREFIXES.staff);
+  }
+  next();
+});
 
 // Encrypt password before saving
 staffSchema.pre('save', async function (next) {
@@ -90,6 +109,7 @@ staffSchema.methods.generateAuthToken = function () {
       email: this.email,
       role: this.role,
       name: this.name,
+      employeeId: this.employeeId,
       isStaff: true,
     },
     env.JWT.SECRET,

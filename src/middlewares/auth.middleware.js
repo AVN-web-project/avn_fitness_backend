@@ -72,6 +72,7 @@ export const requireAuth = asyncHandler(async (req, res, next) => {
       email: account.email,
       name: account.name,
       role: account.role,
+      employeeId: account.employeeId,
       isSuperAdmin: isSuperAdmin || account.role === 'super_admin',
       customPermissions: account.customPermissions || account.permissions || [],
     };
@@ -138,8 +139,7 @@ export const requireRole = (...allowedRoles) => {
       return next(ApiError.unauthorized('Authentication required.'));
     }
 
-    // Super Admin or Admin has fallback access to all capabilities
-    if (userRole === ROLES.ADMIN || userRole === 'super_admin' || req.admin?.isSuperAdmin) {
+    if (userRole === ROLES.SUPER_ADMIN || req.admin?.isSuperAdmin) {
       return next();
     }
 
@@ -165,8 +165,7 @@ export const requirePermission = (permission) => {
       return next(ApiError.unauthorized('Unauthenticated request'));
     }
 
-    // Super Admin or Admin bypasses all checks
-    if (admin.isSuperAdmin || admin.role === 'super_admin' || admin.role === ROLES.ADMIN) {
+    if (admin.isSuperAdmin || admin.role === ROLES.SUPER_ADMIN) {
       return next();
     }
 
@@ -196,7 +195,7 @@ export const requireAnyPermission = (permissions = []) => {
       return next(ApiError.unauthorized('Unauthenticated request'));
     }
 
-    if (admin.isSuperAdmin || admin.role === 'super_admin' || admin.role === ROLES.ADMIN) {
+    if (admin.isSuperAdmin || admin.role === ROLES.SUPER_ADMIN) {
       return next();
     }
 

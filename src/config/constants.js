@@ -1,15 +1,7 @@
-/**
- * Application Constants & Enums
- * Aligned with Commercial Fitness Gear E-Com Technical Implementation & MVP Specifications
- */
-
 export const ROLES = Object.freeze({
   SUPER_ADMIN: 'super_admin',
-  ADMIN: 'admin',
-  OPERATIONS: 'operations',
   PRODUCT_INVENTORY_MANAGER: 'product_inventory_manager',
   ORDER_MANAGER: 'order_manager',
-  CUSTOMER_SUPPORT_EXECUTIVE: 'customer_support_executive',
   CUSTOMER_SUPPORT: 'customer_support',
   MARKETING_MANAGER: 'marketing_manager',
   FINANCE_MANAGER: 'finance_manager',
@@ -80,16 +72,7 @@ export const REVIEW_STATUS = Object.freeze({
 
 export const SUPPORT_STATUS = Object.freeze({
   OPEN: 'open',
-  IN_PROGRESS: 'in_progress',
   RESOLVED: 'resolved',
-  CLOSED: 'closed',
-});
-
-export const SUPPORT_PRIORITY = Object.freeze({
-  LOW: 'low',
-  MEDIUM: 'medium',
-  HIGH: 'high',
-  URGENT: 'urgent',
 });
 
 export const DISCOUNT_TYPE = Object.freeze({
@@ -166,7 +149,6 @@ export const LOG_DOMAINS = Object.freeze({
 // Domain mappings allowed for non-super_admin activity log visibility
 export const ROLE_LOG_DOMAINS = {
   [ROLES.SUPER_ADMIN]: null,
-  [ROLES.ADMIN]: null,
   [ROLES.PRODUCT_INVENTORY_MANAGER]: [
     LOG_DOMAINS.PRODUCTS,
     LOG_DOMAINS.INVENTORY,
@@ -178,7 +160,6 @@ export const ROLE_LOG_DOMAINS = {
     LOG_DOMAINS.RETURNS,
     LOG_DOMAINS.REFUNDS,
   ],
-  [ROLES.CUSTOMER_SUPPORT_EXECUTIVE]: [LOG_DOMAINS.CUSTOMER_SUPPORT],
   [ROLES.CUSTOMER_SUPPORT]: [LOG_DOMAINS.CUSTOMER_SUPPORT],
   [ROLES.MARKETING_MANAGER]: [
     LOG_DOMAINS.MARKETING,
@@ -190,18 +171,11 @@ export const ROLE_LOG_DOMAINS = {
     LOG_DOMAINS.PAYMENTS,
     LOG_DOMAINS.REFUNDS,
   ],
-  [ROLES.OPERATIONS]: [
-    LOG_DOMAINS.ORDERS,
-    LOG_DOMAINS.SHIPMENTS,
-    LOG_DOMAINS.INVENTORY,
-    LOG_DOMAINS.PRODUCTS,
-  ],
 };
 
 // Fine-grained action-level permissions
 export const ROLE_PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: ['*'],
-  [ROLES.ADMIN]: ['*'],
   [ROLES.PRODUCT_INVENTORY_MANAGER]: [
     'products.view',
     'products.create',
@@ -223,17 +197,6 @@ export const ROLE_PERMISSIONS = {
     'returns.view',
     'returns.process',
     'refunds.view',
-    'refunds.process',
-    'activity_logs.view_scoped',
-  ],
-  [ROLES.CUSTOMER_SUPPORT_EXECUTIVE]: [
-    'support.view',
-    'support.reply',
-    'support.update',
-    'support.assign',
-    'orders.view',
-    'shipments.view',
-    'customers.view',
     'activity_logs.view_scoped',
   ],
   [ROLES.CUSTOMER_SUPPORT]: [
@@ -261,18 +224,6 @@ export const ROLE_PERMISSIONS = {
     'finance.reports',
     'refunds.view',
     'refunds.process',
-    'activity_logs.view_scoped',
-  ],
-  [ROLES.OPERATIONS]: [
-    'orders.view',
-    'orders.process',
-    'orders.update_status',
-    'shipments.view',
-    'shipments.update',
-    'inventory.view',
-    'inventory.update',
-    'inventory.adjust',
-    'products.view',
     'activity_logs.view_scoped',
   ],
 };

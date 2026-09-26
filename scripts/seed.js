@@ -49,14 +49,6 @@ const seedDatabase = async () => {
     console.log('\n--- Checking Departmental Staff Accounts (staff_m) ---');
     const departmentalStaff = [
       {
-        name: 'Operations Manager',
-        email: 'ops@avnfitness.com',
-        password: 'Ops@123456',
-        role: STAFF_ROLES.OPERATIONS,
-        phone: '+919876543211',
-        isActive: true,
-      },
-      {
         name: 'Product & Inventory Manager',
         email: 'product.manager@avnfitness.com',
         password: 'Product@123456',

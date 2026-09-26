@@ -20,8 +20,8 @@ router.get('/my-tickets', getMyTickets);
 router.get('/:id', getTicketDetails);
 router.post('/:id/reply', replyToTicket);
 
-// Operations / Admin queue
-router.get('/operations/queue', requireRole(ROLES.OPERATIONS, ROLES.ADMIN), getOperationsTickets);
-router.patch('/operations/:id/status', requireRole(ROLES.OPERATIONS, ROLES.ADMIN), updateTicketStatus);
+// Support queue
+router.get('/operations/queue', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), getOperationsTickets);
+router.patch('/operations/:id/status', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), updateTicketStatus);
 
 export default router;

@@ -20,8 +20,8 @@ router.post('/', requireAuth, createReview);
 // Upvote review helpfulness (requires authenticated user)
 router.post('/:id/helpful', requireAuth, markReviewHelpful);
 
-// Moderation queue for Operations and Admin
-router.get('/moderation', requireAuth, requireRole(ROLES.OPERATIONS, ROLES.ADMIN), getAllReviewsForModeration);
-router.patch('/:id/moderate', requireAuth, requireRole(ROLES.OPERATIONS, ROLES.ADMIN), moderateReview);
+// Moderation queue for super admin and support/marketing roles
+router.get('/moderation', requireAuth, requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT, ROLES.MARKETING_MANAGER), getAllReviewsForModeration);
+router.patch('/:id/moderate', requireAuth, requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT, ROLES.MARKETING_MANAGER), moderateReview);
 
 export default router;

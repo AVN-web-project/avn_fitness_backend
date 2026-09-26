@@ -112,6 +112,7 @@ const orderSchema = new mongoose.Schema(
       provider: { type: String, default: 'razorpay' },
       paymentOrderId: { type: String },
       transactionId: { type: String },
+      refundTransactionId: { type: String },
       paymentStatus: {
         type: String,
         enum: Object.values(PAYMENT_STATUS),

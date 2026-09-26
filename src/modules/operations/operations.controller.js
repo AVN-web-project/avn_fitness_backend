@@ -12,6 +12,7 @@ import {
   ENTITY_TYPES,
   ORDER_STATUS,
   PAYMENT_STATUS,
+  ROLES,
   SHIPMENT_STATUS,
 } from '../../config/constants.js';
 
@@ -67,8 +68,12 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(id);
   if (!order) throw ApiError.notFound('Order not found');
 
-  const isAdmin = req.user.role === 'admin';
-  validateOrderTransition(order.orderStatus, status, isAdmin);
+  if (status === ORDER_STATUS.REFUNDED && !['super_admin', 'finance_manager'].includes(req.user.role)) {
+    throw ApiError.forbidden('Only the Finance & Payouts Lead can process refunds.');
+  }
+
+  const isSuperAdmin = req.user.role === ROLES.SUPER_ADMIN;
+  validateOrderTransition(order.orderStatus, status, isSuperAdmin);
 
   const previousStatus = order.orderStatus;
   order.orderStatus = status;
@@ -217,7 +222,16 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
     order.returnRequest.reviewedBy = req.user._id;
     order.returnRequest.reviewedAt = new Date();
     order.returnRequest.reviewNotes = notes || '';
-    order.returnRequest.refundAmount = refundAmount || order.pricing.totalPayable;
+    // Never approve a refund above what the customer actually paid
+    const paidAmount = Number(order.pricing?.totalPayable) || 0;
+    let approvedRefundAmount = Number(refundAmount) || paidAmount;
+    if (!Number.isFinite(approvedRefundAmount) || approvedRefundAmount <= 0) {
+      approvedRefundAmount = paidAmount;
+    }
+    if (paidAmount > 0 && approvedRefundAmount > paidAmount) {
+      approvedRefundAmount = paidAmount;
+    }
+    order.returnRequest.refundAmount = approvedRefundAmount;
 
     order.statusHistory.push({
       status: ORDER_STATUS.RETURNED,
@@ -236,6 +250,7 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
     });
   } else if (action === 'reject') {
     order.orderStatus = ORDER_STATUS.DELIVERED;
+    order.returnRequest.isRequested = false;
     order.returnRequest.status = 'rejected';
     order.returnRequest.reviewedBy = req.user._id;
     order.returnRequest.reviewedAt = new Date();
@@ -277,17 +292,38 @@ export const recordRefund = asyncHandler(async (req, res) => {
     throw ApiError.badRequest(`Refund can only be recorded for Returned or Cancelled orders.`);
   }
 
-  const finalRefundAmount = refundAmount || order.returnRequest.refundAmount || order.pricing.totalPayable;
+  if (
+    order.orderStatus === ORDER_STATUS.CANCELLED &&
+    (order.paymentInfo?.paymentStatus !== PAYMENT_STATUS.CAPTURED || order.paymentInfo?.provider === 'cod')
+  ) {
+    throw ApiError.badRequest('Cancelled orders are eligible for refund only after a captured online payment.');
+  }
+
+  const paidAmount = Number(order.pricing?.totalPayable) || 0;
+  let finalRefundAmount = Number(refundAmount);
+  if (!Number.isFinite(finalRefundAmount) || finalRefundAmount <= 0) {
+    finalRefundAmount = Number(order.returnRequest?.refundAmount) || paidAmount;
+  }
+  // Never refund more than the customer actually paid
+  if (finalRefundAmount > paidAmount) {
+    finalRefundAmount = paidAmount;
+  }
+  const finalRefundRef = refundTransactionId || `ref_${Date.now()}`;
 
   order.orderStatus = ORDER_STATUS.REFUNDED;
   order.paymentInfo.paymentStatus = PAYMENT_STATUS.REFUNDED;
+  order.paymentInfo.refundTransactionId = finalRefundRef;
   order.returnRequest.status = 'completed';
+  // Keep the Finance page / returns list in sync with the amount actually refunded
+  if (order.returnRequest) {
+    order.returnRequest.refundAmount = finalRefundAmount;
+  }
 
   order.statusHistory.push({
     status: ORDER_STATUS.REFUNDED,
     changedBy: req.user._id,
     changedByRole: req.user.role,
-    note: `Refund of ₹${finalRefundAmount} recorded (Ref: ${refundTransactionId || 'Manual Settlement'}). Reason: ${reason || ''}`,
+    note: `Refund of ₹${finalRefundAmount} recorded (Ref: ${finalRefundRef}). Reason: ${reason || ''}`,
   });
 
   await order.save();
@@ -298,7 +334,7 @@ export const recordRefund = asyncHandler(async (req, res) => {
     {
       status: PAYMENT_STATUS.REFUNDED,
       refundInfo: {
-        refundId: refundTransactionId || `ref_${Date.now()}`,
+        refundId: finalRefundRef,
         amount: finalRefundAmount,
         refundedAt: new Date(),
         reason: reason || 'Order return/cancellation refund',
@@ -313,8 +349,12 @@ export const recordRefund = asyncHandler(async (req, res) => {
     targetEntityId: order._id,
     details: {
       orderNumber: order.orderNumber,
+      // Txn ID of the refunded order (same value the Finance page shows)
+      paymentTransactionId:
+        order.paymentInfo?.transactionId ||
+        order.paymentInfo?.paymentOrderId ||
+        `AVN-TXN-${order.orderNumber}`,
       refundAmount: finalRefundAmount,
-      refundTransactionId,
       reason,
     },
     ipAddress: req.ip,

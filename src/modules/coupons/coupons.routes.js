@@ -14,10 +14,10 @@ const router = Router();
 // Public active coupon lookup (for cart display)
 router.get('/active', getActiveCoupons);
 
-// Admin coupon management
-router.get('/', requireAuth, requireRole(ROLES.ADMIN), getAllCoupons);
-router.post('/', requireAuth, requireRole(ROLES.ADMIN), createCoupon);
-router.patch('/:id', requireAuth, requireRole(ROLES.ADMIN), updateCoupon);
-router.patch('/:id/toggle-status', requireAuth, requireRole(ROLES.ADMIN), toggleCouponStatus);
+// Super admin coupon management
+router.get('/', requireAuth, requireRole(ROLES.SUPER_ADMIN), getAllCoupons);
+router.post('/', requireAuth, requireRole(ROLES.SUPER_ADMIN), createCoupon);
+router.patch('/:id', requireAuth, requireRole(ROLES.SUPER_ADMIN), updateCoupon);
+router.patch('/:id/toggle-status', requireAuth, requireRole(ROLES.SUPER_ADMIN), toggleCouponStatus);
 
 export default router;

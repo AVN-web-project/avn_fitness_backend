@@ -6,15 +6,6 @@ const ALL_STAFF_ROLES = Array.from(
   new Set([
     ...Object.values(ROLES),
     ...(STAFF_ROLES ? Object.values(STAFF_ROLES) : []),
-    'super_admin',
-    'product_inventory_manager',
-    'order_manager',
-    'customer_support',
-    'customer_support_executive',
-    'marketing_manager',
-    'finance_manager',
-    'admin',
-    'operations',
   ])
 );
 
@@ -29,6 +20,12 @@ const activityLogSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    employeeId: {
+      type: String,
+      trim: true,
+      default: null,
+      index: true,
     },
     userRole: {
       type: String,

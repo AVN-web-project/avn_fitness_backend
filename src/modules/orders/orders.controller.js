@@ -3,7 +3,7 @@ import { Product } from '../../models/product.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import { ORDER_STATUS } from '../../config/constants.js';
+import { ORDER_STATUS, ROLES } from '../../config/constants.js';
 
 export const getMyOrders = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
@@ -51,8 +51,7 @@ export const getOrderDetails = asyncHandler(async (req, res) => {
   // Ensure customer can only view their own order (unless staff)
   if (
     order.user.toString() !== req.user._id.toString() &&
-    req.user.role !== 'admin' &&
-    req.user.role !== 'operations'
+    req.user.role !== ROLES.SUPER_ADMIN
   ) {
     throw ApiError.forbidden('Unauthorized access to this order');
   }
@@ -142,6 +141,11 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Return requests are only permitted for delivered orders.');
   }
 
+  // COD orders are not eligible for returns
+  if ((order.paymentInfo?.provider || '').toLowerCase() === 'cod') {
+    throw ApiError.badRequest('Cash on Delivery orders are not eligible for returns.');
+  }
+
   order.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
 
   // Since order was delivered, ensure COD payment status is marked captured
@@ -172,5 +176,3 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
 
   return ApiResponse.success(res, { order }, 'Return request submitted successfully. Our operations team will review it.');
 });
-
-

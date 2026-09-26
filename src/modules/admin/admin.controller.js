@@ -33,8 +33,8 @@ const DOMAIN_TO_ENTITIES = {
  */
 export const getActivityLogs = asyncHandler(async (req, res) => {
   const { user, action, targetEntity, domain, dateFrom, dateTo, search, page = 1, limit = 50 } = req.query;
-  const userRole = req.admin?.role || req.user?.role || 'admin';
-  const isSuper = req.admin?.isSuperAdmin || userRole === ROLES.SUPER_ADMIN || userRole === ROLES.ADMIN;
+  const userRole = req.admin?.role || req.user?.role || ROLES.SUPER_ADMIN;
+  const isSuper = req.admin?.isSuperAdmin || userRole === ROLES.SUPER_ADMIN;
 
   const filter = {};
 
@@ -85,6 +85,7 @@ export const getActivityLogs = asyncHandler(async (req, res) => {
     const searchFilter = [
       { action: { $regex: search, $options: 'i' } },
       { userName: { $regex: search, $options: 'i' } },
+      { employeeId: { $regex: search, $options: 'i' } },
       { 'performedBy.name': { $regex: search, $options: 'i' } },
       { 'details.productName': { $regex: search, $options: 'i' } },
       { 'details.sku': { $regex: search, $options: 'i' } },
@@ -105,6 +106,39 @@ export const getActivityLogs = asyncHandler(async (req, res) => {
     ActivityLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
     ActivityLog.countDocuments(filter),
   ]);
+
+  // Enrich legacy REFUND_RECORDED entries (logged before the txn-id / amount-cap updates):
+  // stamp the refunded order's own payment transaction ID (matching the Finance page's
+  // reference) and cap the recorded refund amount at what the customer actually paid
+  const refundLogs = logs.filter(
+    (l) => l.action === ACTIVITY_ACTIONS.REFUND_RECORDED && l.details?.orderNumber
+  );
+  if (refundLogs.length > 0) {
+    const orderNumbers = [...new Set(refundLogs.map((l) => l.details.orderNumber))];
+    const orders = await Order.find(
+      { orderNumber: { $in: orderNumbers } },
+      {
+        orderNumber: 1,
+        'paymentInfo.transactionId': 1,
+        'paymentInfo.paymentOrderId': 1,
+        'pricing.totalPayable': 1,
+      }
+    ).lean();
+    const orderByNumber = new Map(orders.map((o) => [o.orderNumber, o]));
+    for (const log of refundLogs) {
+      const order = orderByNumber.get(log.details.orderNumber);
+      if (!order) continue;
+      if (!log.details.paymentTransactionId) {
+        log.details.paymentTransactionId =
+          order.paymentInfo?.transactionId || order.paymentInfo?.paymentOrderId;
+      }
+      const paid = Number(order.pricing?.totalPayable) || 0;
+      const recorded = Number(log.details.refundAmount);
+      if (paid > 0 && Number.isFinite(recorded) && recorded > paid) {
+        log.details.refundAmount = paid;
+      }
+    }
+  }
 
   return ApiResponse.success(
     res,
@@ -260,6 +294,7 @@ export const getStaff = asyncHandler(async (req, res) => {
     filter.$or = [
       { name: { $regex: search, $options: 'i' } },
       { email: { $regex: search, $options: 'i' } },
+      { employeeId: { $regex: search, $options: 'i' } },
     ];
   }
 
@@ -319,6 +354,7 @@ export const createStaff = asyncHandler(async (req, res) => {
     details: {
       staffName: newStaff.name,
       staffEmail: newStaff.email,
+      employeeId: newStaff.employeeId,
       assignedRole: newStaff.role,
       phone: newStaff.phone || undefined,
       context: `Created new staff account for ${newStaff.name} (${newStaff.email}) with role '${newStaff.role}'.`,
@@ -353,6 +389,7 @@ export const toggleStaffStatus = asyncHandler(async (req, res) => {
     details: {
       staffName: staffMember.name,
       staffEmail: staffMember.email,
+      employeeId: staffMember.employeeId,
       role: staffMember.role,
       previousStatus: previousState,
       newStatus: newState,
@@ -425,6 +462,15 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
     const isRefunded = ord.orderStatus === 'refunded' || ord.paymentInfo?.paymentStatus === 'refunded';
     const isSuccess = ['paid_confirmed', 'processing', 'shipped', 'delivered'].includes(ord.orderStatus) && !isRefunded;
 
+    // Classify the transaction for the Finance table / detail window
+    let paymentType = 'Order Payment';
+    if (isRefunded) {
+      const hadReturnRequest = Boolean(
+        ord.returnRequest?.isRequested || ord.returnRequest?.status
+      );
+      paymentType = hadReturnRequest ? 'Return Refund' : 'Cancellation Refund';
+    }
+
     return {
       _id: ord._id,
       orderId: ord._id,
@@ -433,8 +479,10 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
       customerEmail: ord.user?.email || 'N/A',
       customerPhone: ord.shippingAddress?.phone || ord.user?.phone || 'N/A',
       transactionId: ord.paymentInfo?.transactionId || ord.paymentInfo?.paymentOrderId || `AVN-TXN-${ord.orderNumber}`,
+      refundTransactionId: isRefunded ? (ord.paymentInfo?.refundTransactionId || null) : null,
       paymentOrderId: ord.paymentInfo?.paymentOrderId || 'N/A',
       provider: ord.paymentInfo?.provider || 'razorpay',
+      paymentType,
       amount: ord.pricing?.totalPayable || 0,
       subtotal: ord.pricing?.subtotal || 0,
       discount: ord.pricing?.discount || 0,
@@ -444,6 +492,7 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
       orderStatus: ord.orderStatus,
       paidAt: ord.paymentInfo?.paidAt || ord.createdAt,
       refundInfo: isRefunded ? {
+        refundId: ord.paymentInfo?.refundTransactionId || null,
         refundAmount: ord.returnRequest?.refundAmount || ord.pricing?.totalPayable,
         refundedAt: ord.returnRequest?.reviewedAt || ord.updatedAt,
         reason: ord.returnRequest?.reason || ord.cancellation?.reason || 'Customer refund settlement',
@@ -520,7 +569,10 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   if (filterType === 'return_requested') {
     query.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
   } else if (filterType === 'pending_refund') {
+    // Only orders holding captured online money actually need a refund payout
     query.orderStatus = { $in: [ORDER_STATUS.RETURNED, ORDER_STATUS.CANCELLED] };
+    query['paymentInfo.provider'] = { $ne: 'cod' };
+    query['paymentInfo.paymentStatus'] = 'captured';
   } else if (filterType === 'refunded') {
     query.orderStatus = ORDER_STATUS.REFUNDED;
   }
@@ -567,7 +619,11 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   for (const o of allRelevant) {
     if (o.orderStatus === ORDER_STATUS.RETURN_REQUESTED) {
       returnRequestedCount++;
-    } else if (o.orderStatus === ORDER_STATUS.RETURNED || o.orderStatus === ORDER_STATUS.CANCELLED) {
+    } else if (
+      (o.orderStatus === ORDER_STATUS.RETURNED || o.orderStatus === ORDER_STATUS.CANCELLED) &&
+      o.paymentInfo?.provider !== 'cod' &&
+      o.paymentInfo?.paymentStatus === 'captured'
+    ) {
       pendingRefundCount++;
     } else if (o.orderStatus === ORDER_STATUS.REFUNDED) {
       refundedCount++;

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { SUPPORT_PRIORITY, SUPPORT_STATUS } from '../config/constants.js';
+import { SUPPORT_STATUS } from '../config/constants.js';
 
 const replySchema = new mongoose.Schema(
   {
@@ -61,11 +61,6 @@ const supportSchema = new mongoose.Schema(
       enum: Object.values(SUPPORT_STATUS),
       default: SUPPORT_STATUS.OPEN,
       index: true,
-    },
-    priority: {
-      type: String,
-      enum: Object.values(SUPPORT_PRIORITY),
-      default: SUPPORT_PRIORITY.MEDIUM,
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,

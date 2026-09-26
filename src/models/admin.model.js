@@ -2,6 +2,8 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { ROLES } from '../config/constants.js';
+import { EMPLOYEE_ID_PREFIXES, calculateNextEmployeeId } from '../utils/employeeId.js';
 
 const adminSchema = new mongoose.Schema(
   {
@@ -31,12 +33,19 @@ const adminSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: 'super_admin',
-      enum: ['super_admin', 'admin'],
+      default: ROLES.SUPER_ADMIN,
+      enum: [ROLES.SUPER_ADMIN],
     },
     phone: {
       type: String,
       trim: true,
+    },
+    employeeId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      index: true,
     },
     isActive: {
       type: Boolean,
@@ -50,6 +59,15 @@ const adminSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+adminSchema.pre('validate', async function (next) {
+  if (!this.employeeId) {
+    const Model = this.constructor;
+    const existingIds = await Model.find({ employeeId: { $regex: `^${EMPLOYEE_ID_PREFIXES.admin}-` } }, 'employeeId').lean();
+    this.employeeId = calculateNextEmployeeId(existingIds.map((doc) => doc.employeeId), EMPLOYEE_ID_PREFIXES.admin);
+  }
+  next();
+});
 
 // Encrypt password before saving
 adminSchema.pre('save', async function (next) {
@@ -73,8 +91,9 @@ adminSchema.methods.generateAuthToken = function () {
     {
       id: this._id,
       email: this.email,
-      role: this.role || 'super_admin',
+      role: this.role || ROLES.SUPER_ADMIN,
       name: this.name,
+      employeeId: this.employeeId,
       isAdmin: true,
       isStaff: true,
     },

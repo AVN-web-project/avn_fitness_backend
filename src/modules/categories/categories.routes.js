@@ -14,8 +14,8 @@ const router = Router();
 router.get('/', getAllCategories);
 router.get('/:slug', getCategoryBySlug);
 
-// Admin only routes
-router.post('/', requireAuth, requireRole(ROLES.ADMIN), createCategory);
-router.patch('/:id', requireAuth, requireRole(ROLES.ADMIN), updateCategory);
+// Super admin only routes
+router.post('/', requireAuth, requireRole(ROLES.SUPER_ADMIN), createCategory);
+router.patch('/:id', requireAuth, requireRole(ROLES.SUPER_ADMIN), updateCategory);
 
 export default router;

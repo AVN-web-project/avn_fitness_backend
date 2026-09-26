@@ -21,7 +21,12 @@ import { ROLES } from '../../config/constants.js';
 const router = Router();
 
 // Activity logs with role-scoped security (accessible to all authenticated staff & admins)
-router.get('/activity-logs', requireAuth, getActivityLogs);
+router.get(
+  '/activity-logs',
+  requireAuth,
+  requireAnyPermission(['activity_logs.view_all', 'activity_logs.view_scoped']),
+  getActivityLogs
+);
 
 // Analytics overview (accessible to all authenticated management staff)
 router.get('/analytics', requireAuth, getAdminAnalytics);
@@ -40,17 +45,17 @@ router.get(
 router.patch(
   '/users/:id/toggle-status',
   requireAuth,
-  requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  requireRole(ROLES.SUPER_ADMIN),
   toggleUserStatus
 );
 
-// Staff Management (Strictly Super-Admin / Admin)
-router.get('/staff', requireAuth, requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), getStaff);
-router.post('/staff', requireAuth, requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN), createStaff);
+// Staff Management (Strictly Super-Admin)
+router.get('/staff', requireAuth, requireRole(ROLES.SUPER_ADMIN), getStaff);
+router.post('/staff', requireAuth, requireRole(ROLES.SUPER_ADMIN), createStaff);
 router.patch(
   '/staff/:id/toggle-status',
   requireAuth,
-  requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  requireRole(ROLES.SUPER_ADMIN),
   toggleStaffStatus
 );
 

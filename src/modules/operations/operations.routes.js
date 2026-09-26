@@ -8,7 +8,8 @@ import {
   updateOrderStatus,
   updateShippingAndDispatch,
 } from './operations.controller.js';
-import { requireAuth, requireAnyPermission } from '../../middlewares/auth.middleware.js';
+import { requireAuth, requireAnyPermission, requireRole } from '../../middlewares/auth.middleware.js';
+import { ROLES } from '../../config/constants.js';
 
 const router = Router();
 
@@ -23,6 +24,11 @@ router.patch('/orders/:id/status', requireAnyPermission(['orders.update_status',
 router.patch('/orders/:id/dispatch', requireAnyPermission(['shipments.update']), updateShippingAndDispatch);
 router.patch('/orders/:id/deliver', requireAnyPermission(['shipments.update', 'orders.process']), confirmDelivery);
 router.post('/orders/:id/returns/review', requireAnyPermission(['returns.process']), reviewReturnRequest);
-router.post('/orders/:id/refund', requireAnyPermission(['refunds.process']), recordRefund);
+router.post(
+  '/orders/:id/refund',
+  requireRole(ROLES.FINANCE_MANAGER),
+  requireAnyPermission(['refunds.process']),
+  recordRefund
+);
 
 export default router;

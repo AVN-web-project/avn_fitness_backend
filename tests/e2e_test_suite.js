@@ -1,7 +1,10 @@
 import http from 'http';
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import app from '../src/app.js';
 import { User } from '../src/models/user.model.js';
+import { Admin } from '../src/models/admin.model.js';
+import { Staff } from '../src/models/staff.model.js';
 import { Product } from '../src/models/product.model.js';
 import { Category } from '../src/models/category.model.js';
 import { Cart } from '../src/models/cart.model.js';
@@ -12,6 +15,7 @@ import { Coupon } from '../src/models/coupon.model.js';
 import { Review } from '../src/models/review.model.js';
 import { SupportRequest } from '../src/models/support.model.js';
 import { ActivityLog } from '../src/models/activityLog.model.js';
+import { Otp } from '../src/models/otp.model.js';
 import { ROLES, PRODUCT_STATUS, ORDER_STATUS, DISCOUNT_TYPE } from '../src/config/constants.js';
 
 const TEST_DB_URI = 'mongodb://127.0.0.1:27017/avn_fitness_test_e2e';
@@ -43,6 +47,9 @@ const runTests = async () => {
     await mongoose.connect(TEST_DB_URI);
     await Promise.all([
       User.deleteMany({}),
+      Admin.deleteMany({}),
+      Staff.deleteMany({}),
+      Otp.deleteMany({}),
       Product.deleteMany({}),
       Category.deleteMany({}),
       Cart.deleteMany({}),
@@ -92,6 +99,11 @@ const runTests = async () => {
     console.log('\n--- TEST SUITE 2: Authentication & Role-Based Access Control ---');
     
     // Register customer
+    await Otp.create({
+      email: 'john@example.com',
+      otpHash: await bcrypt.hash('123456', 10),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    });
     const regRes = await request('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
@@ -99,6 +111,7 @@ const runTests = async () => {
         email: 'john@example.com',
         password: 'Password123',
         phone: '+919988776655',
+        otp: '123456',
       }),
     });
     assert(regRes.status === 201, 'Customer registration returns 201');
@@ -113,22 +126,28 @@ const runTests = async () => {
         name: 'John Clone',
         email: 'john@example.com',
         password: 'Password123',
+        otp: '123456',
       }),
     });
     assert(dupRes.status === 409, 'Duplicate email registration returns 409 Conflict');
 
-    // Create Admin and Operations users
-    const adminUser = await User.create({
+    // Create accounts in their authoritative management collections
+    await Admin.create({
       name: 'Admin User',
       email: 'admin@avn.com',
       password: 'AdminPassword123',
-      role: ROLES.ADMIN,
     });
-    const opsUser = await User.create({
+    await Staff.create({
       name: 'Ops User',
       email: 'ops@avn.com',
       password: 'OpsPassword123',
-      role: ROLES.OPERATIONS,
+      role: ROLES.ORDER_MANAGER,
+    });
+    await Staff.create({
+      name: 'Finance User',
+      email: 'finance@avn.com',
+      password: 'FinancePassword123',
+      role: ROLES.FINANCE_MANAGER,
     });
 
     const adminLoginRes = await request('/auth/login', {
@@ -144,6 +163,13 @@ const runTests = async () => {
     });
     assert(opsLoginRes.status === 200, 'Operations login returns 200');
     const opsToken = opsLoginRes.body.data.token;
+
+    const financeLoginRes = await request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: 'finance@avn.com', password: 'FinancePassword123' }),
+    });
+    assert(financeLoginRes.status === 200, 'Finance lead login returns 200');
+    const financeToken = financeLoginRes.body.data.token;
 
     // RBAC: Customer cannot access Admin endpoints
     const forbiddenAdminRes = await request('/admin/activity-logs', {
@@ -416,10 +442,10 @@ const runTests = async () => {
     assert(reviewRes.body.data.review.isVerifiedPurchase === true, 'Review automatically flagged as Verified Purchase');
     const reviewId = reviewRes.body.data.review._id;
 
-    // Operations moderates review
+    // Super Admin moderates review
     const modRes = await request(`/reviews/${reviewId}/moderate`, {
       method: 'PATCH',
-      headers: { Authorization: `Bearer ${opsToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
       body: JSON.stringify({
         status: 'published',
         moderationNotes: 'Approved clean review',
@@ -450,16 +476,16 @@ const runTests = async () => {
     assert(returnApproveRes.status === 200, 'Operations approves return');
     assert(returnApproveRes.body.data.order.orderStatus === ORDER_STATUS.RETURNED, 'Order transitions to returned');
 
-    // Operations records refund settlement
+    // Finance records refund settlement
     const refundRes = await request(`/operations/orders/${orderId}/refund`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${opsToken}` },
+      headers: { Authorization: `Bearer ${financeToken}` },
       body: JSON.stringify({
         refundTransactionId: 'ref_rzp_mock_999888',
         reason: 'Return settlement completed',
       }),
     });
-    assert(refundRes.status === 200, 'Operations records refund');
+    assert(refundRes.status === 200, 'Finance records refund');
     assert(refundRes.body.data.order.orderStatus === ORDER_STATUS.REFUNDED, 'Order transitions to refunded');
 
     // ==========================================
@@ -481,10 +507,10 @@ const runTests = async () => {
     assert(ticketRes.status === 201, 'Customer raises support ticket');
     const ticketId = ticketRes.body.data.ticket._id;
 
-    // Operations replies to ticket
+    // Super Admin replies to ticket
     const replyRes = await request(`/support/${ticketId}/reply`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${opsToken}` },
+      headers: { Authorization: `Bearer ${adminToken}` },
       body: JSON.stringify({
         message: 'The unstretched circumference is 12 inches (30 cm).',
       }),

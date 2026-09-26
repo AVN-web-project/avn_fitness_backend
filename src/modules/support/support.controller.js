@@ -4,14 +4,14 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
-import { ACTIVITY_ACTIONS, ENTITY_TYPES, SUPPORT_STATUS } from '../../config/constants.js';
+import { ACTIVITY_ACTIONS, ENTITY_TYPES, ROLES, SUPPORT_STATUS } from '../../config/constants.js';
 
 const generateTicketNumber = () => {
   return `TCK-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 };
 
 export const createTicket = asyncHandler(async (req, res) => {
-  const { subject, category, message, orderId, priority } = req.body;
+  const { subject, category, message, orderId } = req.body;
 
   // Normalize category mapping from frontend options
   const categoryMap = {
@@ -47,7 +47,6 @@ export const createTicket = asyncHandler(async (req, res) => {
     subject: subject || 'Support Inquiry',
     category: normalizedCategory,
     initialMessage: message,
-    priority: priority || 'medium',
     status: SUPPORT_STATUS.OPEN,
     replies: [
       {
@@ -81,8 +80,8 @@ export const getTicketDetails = asyncHandler(async (req, res) => {
 
   if (
     ticket.user._id.toString() !== req.user._id.toString() &&
-    req.user.role !== 'admin' &&
-    req.user.role !== 'operations'
+    req.user.role !== ROLES.SUPER_ADMIN &&
+    req.user.role !== ROLES.CUSTOMER_SUPPORT
   ) {
     throw ApiError.forbidden('Unauthorized access to this support ticket.');
   }
@@ -107,13 +106,13 @@ export const replyToTicket = asyncHandler(async (req, res) => {
   });
 
   // If staff replied, set status to in_progress if open
-  if ((req.user.role === 'admin' || req.user.role === 'operations') && ticket.status === SUPPORT_STATUS.OPEN) {
+  if ((req.user.role === ROLES.SUPER_ADMIN || req.user.role === ROLES.CUSTOMER_SUPPORT) && ticket.status === SUPPORT_STATUS.OPEN) {
     ticket.status = SUPPORT_STATUS.IN_PROGRESS;
   }
 
   await ticket.save();
 
-  if (req.user.role === 'admin' || req.user.role === 'operations') {
+  if (req.user.role === ROLES.SUPER_ADMIN || req.user.role === ROLES.CUSTOMER_SUPPORT) {
     await recordActivityLog({
       user: req.user,
       action: ACTIVITY_ACTIONS.SUPPORT_REPLIED,
@@ -128,12 +127,11 @@ export const replyToTicket = asyncHandler(async (req, res) => {
 });
 
 export const getOperationsTickets = asyncHandler(async (req, res) => {
-  const { status, category, priority, page = 1, limit = 20 } = req.query;
+  const { status, category, page = 1, limit = 20 } = req.query;
   const filter = {};
 
   if (status) filter.status = status;
   if (category) filter.category = category;
-  if (priority) filter.priority = priority;
 
   const pageNum = parseInt(page, 10);
   const limitNum = parseInt(limit, 10);
