@@ -16,6 +16,14 @@ import {
   SHIPMENT_STATUS,
 } from '../../config/constants.js';
 
+const getRefundableAmount = (order) => {
+  const totalPayable = Number(order.pricing?.totalPayable) || 0;
+  const codSurcharge = String(order.paymentInfo?.provider || '').toLowerCase() === 'cod'
+    ? Number(order.pricing?.codSurcharge ?? 0)
+    : 0;
+  return Math.max(0, totalPayable - codSurcharge);
+};
+
 export const getOperationsOrders = asyncHandler(async (req, res) => {
   const { status, search, page = 1, limit = 20 } = req.query;
   const filter = {};
@@ -67,6 +75,13 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
   const order = await Order.findById(id);
   if (!order) throw ApiError.notFound('Order not found');
+
+  if (status === ORDER_STATUS.CANCELLED) {
+    throw ApiError.badRequest('Orders can only be cancelled by the customer before dispatch.');
+  }
+  if (order.orderStatus === ORDER_STATUS.CANCELLED) {
+    throw ApiError.badRequest('Cancelled orders cannot be reopened or changed through status updates.');
+  }
 
   if (status === ORDER_STATUS.REFUNDED && !['super_admin', 'finance_manager'].includes(req.user.role)) {
     throw ApiError.forbidden('Only the Finance & Payouts Lead can process refunds.');
@@ -222,14 +237,13 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
     order.returnRequest.reviewedBy = req.user._id;
     order.returnRequest.reviewedAt = new Date();
     order.returnRequest.reviewNotes = notes || '';
-    // Never approve a refund above what the customer actually paid
-    const paidAmount = Number(order.pricing?.totalPayable) || 0;
-    let approvedRefundAmount = Number(refundAmount) || paidAmount;
+    const refundableAmount = getRefundableAmount(order);
+    let approvedRefundAmount = Number(refundAmount) || refundableAmount;
     if (!Number.isFinite(approvedRefundAmount) || approvedRefundAmount <= 0) {
-      approvedRefundAmount = paidAmount;
+      approvedRefundAmount = refundableAmount;
     }
-    if (paidAmount > 0 && approvedRefundAmount > paidAmount) {
-      approvedRefundAmount = paidAmount;
+    if (approvedRefundAmount > refundableAmount) {
+      approvedRefundAmount = refundableAmount;
     }
     order.returnRequest.refundAmount = approvedRefundAmount;
 
@@ -299,14 +313,13 @@ export const recordRefund = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Cancelled orders are eligible for refund only after a captured online payment.');
   }
 
-  const paidAmount = Number(order.pricing?.totalPayable) || 0;
+  const refundableAmount = getRefundableAmount(order);
   let finalRefundAmount = Number(refundAmount);
   if (!Number.isFinite(finalRefundAmount) || finalRefundAmount <= 0) {
-    finalRefundAmount = Number(order.returnRequest?.refundAmount) || paidAmount;
+    finalRefundAmount = Number(order.returnRequest?.refundAmount) || refundableAmount;
   }
-  // Never refund more than the customer actually paid
-  if (finalRefundAmount > paidAmount) {
-    finalRefundAmount = paidAmount;
+  if (finalRefundAmount > refundableAmount) {
+    finalRefundAmount = refundableAmount;
   }
   const finalRefundRef = refundTransactionId || `ref_${Date.now()}`;
 

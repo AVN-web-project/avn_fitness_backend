@@ -96,6 +96,7 @@ const orderSchema = new mongoose.Schema(
       subtotal: { type: Number, required: true },
       discount: { type: Number, default: 0 },
       shippingFee: { type: Number, default: 0 },
+      codSurcharge: { type: Number, default: 0 },
       tax: { type: Number, default: 0 },
       totalPayable: { type: Number, required: true },
     },
@@ -110,6 +111,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentInfo: {
       provider: { type: String, default: 'razorpay' },
+      method: { type: String, default: '' },
       paymentOrderId: { type: String },
       transactionId: { type: String },
       refundTransactionId: { type: String },
@@ -152,6 +154,13 @@ const orderSchema = new mongoose.Schema(
       reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       reviewedAt: { type: Date },
       refundAmount: { type: Number, default: 0 },
+      refundAccountDetails: {
+        method: { type: String, enum: ['upi', 'bank'] },
+        upiId: { type: String, trim: true, lowercase: true },
+        accountHolderName: { type: String, trim: true },
+        accountNumber: { type: String, trim: true },
+        ifscCode: { type: String, trim: true, uppercase: true },
+      },
       reviewNotes: { type: String, default: '' },
     },
     appliedCoupon: {

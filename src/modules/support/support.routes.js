@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import {
+  chatAutoReply,
   createTicket,
+  createTicketOnBehalf,
   getMyTickets,
   getOperationsTickets,
   getTicketDetails,
@@ -12,6 +14,9 @@ import { ROLES } from '../../config/constants.js';
 
 const router = Router();
 
+// Public storefront chat widget endpoint (no auth required)
+router.post('/chat', chatAutoReply);
+
 router.use(requireAuth);
 
 // Customer endpoints
@@ -22,6 +27,7 @@ router.post('/:id/reply', replyToTicket);
 
 // Support queue
 router.get('/operations/queue', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), getOperationsTickets);
+router.post('/operations/tickets', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), createTicketOnBehalf);
 router.patch('/operations/:id/status', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), updateTicketStatus);
 
 export default router;

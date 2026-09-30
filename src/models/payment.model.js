@@ -19,6 +19,11 @@ const paymentSchema = new mongoose.Schema(
       enum: ['razorpay', 'stripe', 'cod', 'mock'],
       default: 'razorpay',
     },
+    method: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
     amount: {
       type: Number,
       required: true,

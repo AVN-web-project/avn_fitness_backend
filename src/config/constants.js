@@ -46,6 +46,8 @@ export const ORDER_STATUS = Object.freeze({
 
 export const ALL_ORDER_STATUSES = Object.values(ORDER_STATUS);
 
+export const COD_SURCHARGE = 50;
+
 export const PAYMENT_STATUS = Object.freeze({
   PENDING: 'pending',
   CAPTURED: 'captured',
@@ -106,6 +108,7 @@ export const ACTIVITY_ACTIONS = Object.freeze({
   REVIEW_MODERATED: 'REVIEW_MODERATED',
 
   // Support
+  SUPPORT_REQUEST_CREATED: 'SUPPORT_REQUEST_CREATED',
   SUPPORT_REQUEST_UPDATED: 'SUPPORT_REQUEST_UPDATED',
   SUPPORT_REPLIED: 'SUPPORT_REPLIED',
 

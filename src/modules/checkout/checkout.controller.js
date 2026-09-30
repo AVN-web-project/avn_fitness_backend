@@ -8,7 +8,8 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendOrderConfirmationEmail } from '../../utils/email.service.js';
-import { ORDER_STATUS, PAYMENT_STATUS, PRODUCT_STATUS } from '../../config/constants.js';
+import { env } from '../../config/env.js';
+import { COD_SURCHARGE, ORDER_STATUS, PAYMENT_STATUS, PRODUCT_STATUS } from '../../config/constants.js';
 
 const generateOrderNumber = () => {
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -31,6 +32,14 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     paymentMethod,
     items: bodyItems,
   } = req.body;
+  const selectedMethod = String(paymentMethod || req.body.paymentMethodType || '').toLowerCase();
+  const provider = selectedMethod === 'cod'
+    ? 'cod'
+    : String(paymentProvider || env.PAYMENT.PROVIDER || 'razorpay').toLowerCase();
+  if (provider === 'mock' && !env.PAYMENT.MOCK_ENABLED) {
+    throw ApiError.forbidden('Simulated payments are disabled in this environment.');
+  }
+  const isCod = provider === 'cod';
 
   // Resolve shipping address from customAddress, shippingAddress, address, or user address book
   let selectedAddress = customAddress || shippingAddress || address;
@@ -137,13 +146,13 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       ? explicitShipping
       : (subtotal >= 999 ? 0 : 99)
   );
-  const totalPayable = req.body.pricing?.totalPayable !== undefined
+  const baseTotalPayable = req.body.pricing?.totalPayable !== undefined
     ? Number(req.body.pricing.totalPayable)
     : Math.max(0, subtotal - discount + shippingFee);
+  const codSurcharge = isCod ? COD_SURCHARGE : 0;
+  const totalPayable = baseTotalPayable + codSurcharge;
 
   const orderNumber = generateOrderNumber();
-  const provider = (req.body.paymentMethodType || paymentMethod || paymentProvider || 'cod').toLowerCase();
-  const isCod = provider === 'cod';
   const orderStatus = isCod ? ORDER_STATUS.PROCESSING : ORDER_STATUS.PENDING_PAYMENT;
   const paymentStatus = PAYMENT_STATUS.PENDING;
   const paidAt = undefined;
@@ -158,11 +167,13 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       subtotal,
       discount: Math.round(discount),
       shippingFee,
+      codSurcharge,
       totalPayable: Math.round(totalPayable),
     },
     shippingAddress: resolvedAddress,
     paymentInfo: {
       provider,
+      method: selectedMethod || provider,
       paymentOrderId: `pay_ord_${Date.now()}`,
       transactionId,
       paymentStatus,
@@ -241,6 +252,10 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     throw ApiError.forbidden('Unauthorized access to this order payment verification.');
   }
 
+  if (order.paymentInfo?.provider === 'mock' && !env.PAYMENT.MOCK_ENABLED) {
+    throw ApiError.forbidden('Simulated payments are disabled in this environment.');
+  }
+
   if (order.orderStatus === ORDER_STATUS.PAID_CONFIRMED) {
     return ApiResponse.success(res, { order }, 'Order payment has already been verified.');
   }
@@ -286,6 +301,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       order: order._id,
       user: req.user._id,
       provider: order.paymentInfo.provider,
+      method: order.paymentInfo.method,
       amount: order.pricing.totalPayable,
       status: PAYMENT_STATUS.CAPTURED,
       providerOrderId: order.paymentInfo.paymentOrderId,

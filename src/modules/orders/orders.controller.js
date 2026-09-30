@@ -119,7 +119,7 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
 
 export const requestOrderReturn = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { reason } = req.body;
+  const { reason, refundAccountDetails } = req.body;
 
   const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
   if (!trimmedReason) {
@@ -141,15 +141,54 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('Return requests are only permitted for delivered orders.');
   }
 
-  // COD orders are not eligible for returns
-  if ((order.paymentInfo?.provider || '').toLowerCase() === 'cod') {
-    throw ApiError.badRequest('Cash on Delivery orders are not eligible for returns.');
+  const isCod = (order.paymentInfo?.provider || '').toLowerCase() === 'cod';
+  let normalizedRefundAccountDetails;
+  if (isCod) {
+    const method = typeof refundAccountDetails?.method === 'string'
+      ? refundAccountDetails.method.trim().toLowerCase()
+      : '';
+
+    if (!['upi', 'bank'].includes(method)) {
+      throw ApiError.badRequest('Choose UPI or bank transfer for your COD refund.');
+    }
+
+    if (method === 'upi') {
+      const upiId = typeof refundAccountDetails?.upiId === 'string'
+        ? refundAccountDetails.upiId.trim().toLowerCase()
+        : '';
+      if (upiId.length > 100 || !/^[a-z0-9][a-z0-9._-]{1,}@[a-z0-9][a-z0-9.-]{1,}[a-z0-9]$/.test(upiId)) {
+        throw ApiError.badRequest('Please provide a valid UPI ID.');
+      }
+      normalizedRefundAccountDetails = { method, upiId };
+    } else {
+      const accountHolderName = typeof refundAccountDetails?.accountHolderName === 'string'
+        ? refundAccountDetails.accountHolderName.trim()
+        : '';
+      const accountNumber = typeof refundAccountDetails?.accountNumber === 'string'
+        ? refundAccountDetails.accountNumber.trim()
+        : '';
+      const ifscCode = typeof refundAccountDetails?.ifscCode === 'string'
+        ? refundAccountDetails.ifscCode.trim().toUpperCase()
+        : '';
+      const validAccountHolderName = /^[\p{L}\p{M}]+(?:[ .'-][\p{L}\p{M}]+)*$/u.test(accountHolderName);
+
+      if (accountHolderName.length < 2 || accountHolderName.length > 100 || !validAccountHolderName) {
+        throw ApiError.badRequest('Please provide a valid account holder name.');
+      }
+      if (!/^\d{6,34}$/.test(accountNumber)) {
+        throw ApiError.badRequest('Please provide a valid bank account number.');
+      }
+      if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifscCode)) {
+        throw ApiError.badRequest('Please provide a valid IFSC code.');
+      }
+
+      normalizedRefundAccountDetails = { method, accountHolderName, accountNumber, ifscCode };
+    }
   }
 
   order.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
 
-  // Since order was delivered, ensure COD payment status is marked captured
-  if (order.paymentInfo && order.paymentInfo.provider === 'cod') {
+  if (isCod) {
     order.paymentInfo.paymentStatus = 'captured';
     if (!order.paymentInfo.paidAt) {
       order.paymentInfo.paidAt = new Date();
@@ -161,7 +200,8 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
     reason: trimmedReason,
     requestedAt: new Date(),
     status: 'pending',
-    refundAmount: order.pricing.totalPayable,
+    refundAmount: Math.max(0, Number(order.pricing.totalPayable) - Number(order.pricing.codSurcharge || 0)),
+    refundAccountDetails: normalizedRefundAccountDetails,
     reviewNotes: '',
   };
 

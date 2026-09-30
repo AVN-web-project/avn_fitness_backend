@@ -569,10 +569,15 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   if (filterType === 'return_requested') {
     query.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
   } else if (filterType === 'pending_refund') {
-    // Only orders holding captured online money actually need a refund payout
+    // COD cancellations are unpaid, but delivered COD returns require a manual refund.
     query.orderStatus = { $in: [ORDER_STATUS.RETURNED, ORDER_STATUS.CANCELLED] };
-    query['paymentInfo.provider'] = { $ne: 'cod' };
     query['paymentInfo.paymentStatus'] = 'captured';
+    query.$and = [{
+      $or: [
+        { 'paymentInfo.provider': { $ne: 'cod' } },
+        { orderStatus: ORDER_STATUS.RETURNED },
+      ],
+    }];
   } else if (filterType === 'refunded') {
     query.orderStatus = ORDER_STATUS.REFUNDED;
   }
@@ -580,6 +585,7 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   if (search) {
     const searchRegex = { $regex: search, $options: 'i' };
     query.$and = [
+      ...(query.$and || []),
       {
         $or: [
           { orderNumber: searchRegex },
@@ -608,7 +614,7 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
         { 'returnRequest.isRequested': true },
         { 'cancellation.isCancelled': true },
       ],
-    }).select('orderStatus pricing returnRequest cancellation').lean(),
+    }).select('orderStatus pricing paymentInfo returnRequest cancellation').lean(),
   ]);
 
   let returnRequestedCount = 0;
@@ -621,13 +627,16 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
       returnRequestedCount++;
     } else if (
       (o.orderStatus === ORDER_STATUS.RETURNED || o.orderStatus === ORDER_STATUS.CANCELLED) &&
-      o.paymentInfo?.provider !== 'cod' &&
+      (o.paymentInfo?.provider !== 'cod' || o.orderStatus === ORDER_STATUS.RETURNED) &&
       o.paymentInfo?.paymentStatus === 'captured'
     ) {
       pendingRefundCount++;
     } else if (o.orderStatus === ORDER_STATUS.REFUNDED) {
       refundedCount++;
-      totalRefundedAmount += Number(o.pricing?.totalPayable) || 0;
+      totalRefundedAmount += Number(o.returnRequest?.refundAmount) || Math.max(
+        0,
+        (Number(o.pricing?.totalPayable) || 0) - (o.paymentInfo?.provider === 'cod' ? Number(o.pricing?.codSurcharge || 0) : 0)
+      );
     }
   }
 

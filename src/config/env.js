@@ -4,8 +4,10 @@ import path from 'path';
 // Load environment variables from .env
 dotenv.config();
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+
 export const env = Object.freeze({
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  NODE_ENV: nodeEnv,
   PORT: parseInt(process.env.PORT || '5000', 10),
   API_PREFIX: process.env.API_PREFIX || '/api/v1',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
@@ -26,6 +28,7 @@ export const env = Object.freeze({
 
   PAYMENT: {
     PROVIDER: process.env.PAYMENT_PROVIDER || 'razorpay',
+    MOCK_ENABLED: nodeEnv !== 'production' && process.env.MOCK_PAYMENTS_ENABLED !== 'false',
     RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID || '',
     RAZORPAY_KEY_SECRET: process.env.RAZORPAY_KEY_SECRET || '',
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
