@@ -47,6 +47,7 @@ export const ORDER_STATUS = Object.freeze({
 export const ALL_ORDER_STATUSES = Object.values(ORDER_STATUS);
 
 export const COD_SURCHARGE = 50;
+export const ORDER_HANDLING_FEE = 10;
 
 export const PAYMENT_STATUS = Object.freeze({
   PENDING: 'pending',

@@ -488,6 +488,7 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
       discount: ord.pricing?.discount || 0,
       tax: ord.pricing?.tax || 0,
       shippingFee: ord.pricing?.shippingFee || 0,
+      handlingFee: ord.pricing?.handlingFee || 0,
       paymentStatus: isRefunded ? 'refunded' : (ord.paymentInfo?.paymentStatus || (isSuccess ? 'captured' : 'pending')),
       orderStatus: ord.orderStatus,
       paidAt: ord.paymentInfo?.paidAt || ord.createdAt,

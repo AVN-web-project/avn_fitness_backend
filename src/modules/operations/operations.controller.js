@@ -21,7 +21,8 @@ const getRefundableAmount = (order) => {
   const codSurcharge = String(order.paymentInfo?.provider || '').toLowerCase() === 'cod'
     ? Number(order.pricing?.codSurcharge ?? 0)
     : 0;
-  return Math.max(0, totalPayable - codSurcharge);
+  const handlingFee = Number(order.pricing?.handlingFee) || 0;
+  return Math.max(0, totalPayable - codSurcharge - handlingFee);
 };
 
 export const getOperationsOrders = asyncHandler(async (req, res) => {

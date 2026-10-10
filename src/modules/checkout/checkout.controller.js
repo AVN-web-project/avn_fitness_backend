@@ -9,7 +9,7 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendOrderConfirmationEmail } from '../../utils/email.service.js';
 import { env } from '../../config/env.js';
-import { COD_SURCHARGE, ORDER_STATUS, PAYMENT_STATUS, PRODUCT_STATUS } from '../../config/constants.js';
+import { COD_SURCHARGE, ORDER_HANDLING_FEE, ORDER_STATUS, PAYMENT_STATUS, PRODUCT_STATUS } from '../../config/constants.js';
 
 const generateOrderNumber = () => {
   const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -149,8 +149,9 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
   const baseTotalPayable = req.body.pricing?.totalPayable !== undefined
     ? Number(req.body.pricing.totalPayable)
     : Math.max(0, subtotal - discount + shippingFee);
+  const handlingFee = ORDER_HANDLING_FEE;
   const codSurcharge = isCod ? COD_SURCHARGE : 0;
-  const totalPayable = baseTotalPayable + codSurcharge;
+  const totalPayable = baseTotalPayable + codSurcharge + handlingFee;
 
   const orderNumber = generateOrderNumber();
   const orderStatus = isCod ? ORDER_STATUS.PROCESSING : ORDER_STATUS.PENDING_PAYMENT;
@@ -167,6 +168,7 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       subtotal,
       discount: Math.round(discount),
       shippingFee,
+      handlingFee,
       codSurcharge,
       totalPayable: Math.round(totalPayable),
     },

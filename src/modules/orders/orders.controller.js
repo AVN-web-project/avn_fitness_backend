@@ -200,7 +200,12 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
     reason: trimmedReason,
     requestedAt: new Date(),
     status: 'pending',
-    refundAmount: Math.max(0, Number(order.pricing.totalPayable) - Number(order.pricing.codSurcharge || 0)),
+    refundAmount: Math.max(
+      0,
+      Number(order.pricing.totalPayable) -
+        Number(order.pricing.codSurcharge || 0) -
+        Number(order.pricing.handlingFee || 0)
+    ),
     refundAccountDetails: normalizedRefundAccountDetails,
     reviewNotes: '',
   };

@@ -16,7 +16,7 @@ import { Review } from '../src/models/review.model.js';
 import { SupportRequest } from '../src/models/support.model.js';
 import { ActivityLog } from '../src/models/activityLog.model.js';
 import { Otp } from '../src/models/otp.model.js';
-import { ROLES, PRODUCT_STATUS, ORDER_STATUS, DISCOUNT_TYPE, COD_SURCHARGE } from '../src/config/constants.js';
+import { ROLES, PRODUCT_STATUS, ORDER_STATUS, DISCOUNT_TYPE, COD_SURCHARGE, ORDER_HANDLING_FEE } from '../src/config/constants.js';
 
 const TEST_DB_URI = 'mongodb://127.0.0.1:27017/avn_fitness_test_e2e';
 let server;
@@ -374,6 +374,12 @@ const runTests = async () => {
     const orderId = checkoutRes.body.data.orderId;
     const orderNumber = checkoutRes.body.data.orderNumber;
     assert(orderNumber.startsWith('ORD-'), 'Order Number generated in ORD-YYYYMMDD-XXXX format');
+    const onlineOrder = await Order.findById(orderId);
+    assert(onlineOrder.pricing.handlingFee === ORDER_HANDLING_FEE, 'Prepaid order stores the fixed handling fee');
+    assert(
+      onlineOrder.pricing.totalPayable === onlineOrder.pricing.subtotal - onlineOrder.pricing.discount + onlineOrder.pricing.shippingFee + ORDER_HANDLING_FEE,
+      'Handling fee is included once in prepaid total payable'
+    );
 
     // Verify payment and capture order
     const payRes = await request('/checkout/verify-payment', {
@@ -571,6 +577,10 @@ const runTests = async () => {
     });
     assert(returnReqRes.status === 200, 'Customer submits return request');
     assert(returnReqRes.body.data.order.orderStatus === ORDER_STATUS.RETURN_REQUESTED, 'Order transitions to return_requested');
+    assert(
+      returnReqRes.body.data.order.returnRequest.refundAmount === onlineOrder.pricing.totalPayable - ORDER_HANDLING_FEE,
+      'Prepaid return estimate excludes the non-refundable handling fee'
+    );
 
     // Operations approves return
     const returnApproveRes = await request(`/operations/orders/${orderId}/returns/review`, {
@@ -608,9 +618,10 @@ const runTests = async () => {
     const codOrderId = codCheckoutRes.body.data.orderId;
     const codOrder = await Order.findById(codOrderId);
     assert(codOrder.pricing.codSurcharge === COD_SURCHARGE, 'COD order stores the fixed surcharge');
+    assert(codOrder.pricing.handlingFee === ORDER_HANDLING_FEE, 'COD order stores the fixed handling fee');
     assert(
-      codOrder.pricing.totalPayable === codOrder.pricing.subtotal - codOrder.pricing.discount + codOrder.pricing.shippingFee + COD_SURCHARGE,
-      'COD surcharge is included in total payable'
+      codOrder.pricing.totalPayable === codOrder.pricing.subtotal - codOrder.pricing.discount + codOrder.pricing.shippingFee + COD_SURCHARGE + ORDER_HANDLING_FEE,
+      'COD surcharge and handling fee are included in total payable once'
     );
 
     codOrder.orderStatus = ORDER_STATUS.DELIVERED;
@@ -650,8 +661,8 @@ const runTests = async () => {
       body: JSON.stringify({ reason: 'COD return with refund details', refundAccountDetails: codRefundAccountDetails }),
     });
     assert(codReturnRes.status === 200, 'Delivered COD order can be returned');
-    const codRefundableAmount = codOrder.pricing.totalPayable - COD_SURCHARGE;
-    assert(codReturnRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'COD return amount excludes the surcharge');
+    const codRefundableAmount = codOrder.pricing.totalPayable - COD_SURCHARGE - ORDER_HANDLING_FEE;
+    assert(codReturnRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'COD return amount excludes the surcharge and non-refundable handling fee');
     assert(
       codReturnRes.body.data.order.returnRequest.refundAccountDetails.accountNumber === codRefundAccountDetails.accountNumber,
       'COD refund bank details are stored on the return request'
@@ -663,7 +674,7 @@ const runTests = async () => {
       body: JSON.stringify({ action: 'approve', notes: 'COD return inspection passed', refundAmount: codOrder.pricing.totalPayable }),
     });
     assert(codReturnApproveRes.status === 200, 'Operations can approve a COD return');
-    assert(codReturnApproveRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'Approved COD refund is capped below the surcharge');
+    assert(codReturnApproveRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'Approved COD refund is capped below non-refundable fees');
 
     const pendingCodRefundsRes = await request('/admin/returns-cancellations?filterType=pending_refund', {
       headers: { Authorization: `Bearer ${financeToken}` },
@@ -679,7 +690,7 @@ const runTests = async () => {
       body: JSON.stringify({ refundTransactionId: 'ref_cod_mock_123', refundAmount: codOrder.pricing.totalPayable }),
     });
     assert(codRefundRes.status === 200, 'Finance can record a COD return refund');
-    assert(codRefundRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'Recorded COD refund never includes the surcharge');
+    assert(codRefundRes.body.data.order.returnRequest.refundAmount === codRefundableAmount, 'Recorded COD refund excludes non-refundable fees');
 
     const codUpiCheckoutRes = await request('/checkout/create-order', {
       method: 'POST',
