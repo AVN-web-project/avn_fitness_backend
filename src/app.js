@@ -48,7 +48,10 @@ app.get('/', (req, res) => {
 });
 
 // Security HTTP headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
 
 // CORS configuration supporting localhost, Vercel frontend, and configured CLIENT_URL
 const allowedOrigins = [
@@ -91,7 +94,10 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
 // Request parsing & compression
-app.use('/uploads', express.static(path.join(process.cwd(), 'public/uploads')));
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(process.cwd(), 'public/uploads')));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser(env.COOKIE_SECRET));

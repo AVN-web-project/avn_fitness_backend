@@ -92,6 +92,12 @@ const runTests = async () => {
     assert(healthRes.status === 200, 'GET /health returns 200');
     assert(healthRes.body.data.status === 'ok', 'Health status is ok');
     assert(healthRes.body.data.database.connected === true, 'Database is connected');
+    const productImageRes = await fetch(`http://127.0.0.1:${port}/uploads/products/knee-wrap.png`, { method: 'HEAD' });
+    assert(productImageRes.status === 200, 'Product image is served from public uploads');
+    assert(
+      productImageRes.headers.get('cross-origin-resource-policy') === 'cross-origin',
+      'Public product images can be embedded cross-origin by the storefront'
+    );
 
     // ==========================================
     // TEST SUITE 2: Authentication & RBAC
