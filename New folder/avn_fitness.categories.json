@@ -1,0 +1,88 @@
+[{
+  "_id": {
+    "$oid": "6a9bf76ddc9fc27ec39b1f1f"
+  },
+  "name": "Knee Support",
+  "slug": "knee-support",
+  "description": "Max Compression & Joint Stability",
+  "parentCategory": null,
+  "isActive": true,
+  "sortOrder": 1,
+  "createdAt": {
+    "$date": "2026-09-05T11:05:17.672Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-12T06:55:38.184Z"
+  },
+  "__v": 0,
+  "image": {
+    "url": "/knee-wrap.png",
+    "altText": "AVN Knee Support Wraps"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a9bf76ddc9fc27ec39b1f25"
+  },
+  "name": "Wrist Support",
+  "slug": "wrist-support",
+  "description": "Heavy Duty Joint Lock & Wraps",
+  "parentCategory": null,
+  "isActive": true,
+  "sortOrder": 2,
+  "createdAt": {
+    "$date": "2026-09-05T11:05:17.694Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-12T06:55:38.263Z"
+  },
+  "__v": 0,
+  "image": {
+    "url": "/wrist-wrap.png",
+    "altText": "AVN Wrist Support Wraps"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a9bf76ddc9fc27ec39b1f29"
+  },
+  "name": "Lifting Accessories",
+  "slug": "lifting-accessories",
+  "description": "Power Straps, Belts & Grip Gear",
+  "parentCategory": null,
+  "isActive": true,
+  "sortOrder": 3,
+  "createdAt": {
+    "$date": "2026-09-05T11:05:17.702Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-12T06:55:38.274Z"
+  },
+  "__v": 0,
+  "image": {
+    "url": "/lifting-straps.png",
+    "altText": "AVN Lifting Accessories"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a9bf76ddc9fc27ec39b1f2c"
+  },
+  "name": "Yoga Accessories",
+  "slug": "yoga-accessories",
+  "description": "Stretching Straps & Mobility Belts",
+  "parentCategory": null,
+  "isActive": true,
+  "sortOrder": 4,
+  "createdAt": {
+    "$date": "2026-09-05T11:05:17.708Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-12T06:55:38.282Z"
+  },
+  "__v": 0,
+  "image": {
+    "url": "/yoga-belt.png",
+    "altText": "AVN Yoga Stretching Belt"
+  }
+}]

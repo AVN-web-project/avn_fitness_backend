@@ -1,0 +1,372 @@
+[{
+  "_id": {
+    "$oid": "6a985e11b371e64071065fc3"
+  },
+  "name": "Rahul Sharma",
+  "email": "rahul.sharma@example.com",
+  "password": "$2b$10$i9fByP27OeW9jq8Pzj1fSevJwa/xBPTggW9Euu7G8qPMAadHYjR/i",
+  "role": "user",
+  "phone": "+919876543212",
+  "addresses": [
+    {
+      "title": "Home",
+      "fullName": "Rahul Sharma",
+      "phone": "+919876543212",
+      "street": "Flat 402, Green Valley Apartments, Indiranagar",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "pincode": "560038",
+      "country": "India",
+      "isDefault": true,
+      "_id": {
+        "$oid": "6a985e11b371e64071065fc4"
+      },
+      "createdAt": {
+        "$date": "2026-09-02T17:34:09.775Z"
+      },
+      "updatedAt": {
+        "$date": "2026-09-02T17:34:09.775Z"
+      }
+    }
+  ],
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-02T17:34:09.776Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-10T16:48:03.474Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-10-10T16:48:03.458Z"
+  },
+  "authProvider": "local"
+},
+{
+  "_id": {
+    "$oid": "6a9860a3fc9aeb01e468fb69"
+  },
+  "name": "Test Athlete",
+  "email": "testathlete_1788371106862@avngear.com",
+  "password": "$2b$10$KqkATQ9l.VsrdboQNNnlV.koXXJCRPgLZ33AifT11qwEWnrBL7nba",
+  "role": "user",
+  "phone": "+919876543210",
+  "isActive": true,
+  "addresses": [
+    {
+      "title": "Gym",
+      "fullName": "Test Athlete",
+      "phone": "+919876543210",
+      "street": "42 Powerlifting Avenue, Connaught Place",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110001",
+      "country": "India",
+      "isDefault": true,
+      "_id": {
+        "$oid": "6a9860a3fc9aeb01e468fb6f"
+      },
+      "createdAt": {
+        "$date": "2026-09-02T17:45:07.409Z"
+      },
+      "updatedAt": {
+        "$date": "2026-09-02T17:45:07.409Z"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T17:45:07.098Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T17:45:07.595Z"
+  },
+  "__v": 1,
+  "lastLoginAt": {
+    "$date": "2026-09-02T17:45:07.595Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "name": "avntest",
+  "email": "projectstestingavn@gmail.com",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "1234567890",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-05T08:33:01.972Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-07T06:16:30.964Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-07T06:16:30.962Z"
+  },
+  "password": "$2b$10$pZRCNKNcowoLn4MfCcPYkO3DAhVAyoaXooqganPoYe8r1fDGCcYJu"
+},
+{
+  "_id": {
+    "$oid": "6a9c530e55b14eca9e4db0a2"
+  },
+  "name": "test2",
+  "email": "1avn2@gmail.com",
+  "authProvider": "otp",
+  "role": "user",
+  "phone": "1234567890",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-05T17:36:14.389Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-07T06:12:28.361Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-07T06:12:28.358Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a9d0eea8bd6fe0a11d2e73c"
+  },
+  "name": "Vikram S.",
+  "email": "vikram.s@athlete.avngear.com",
+  "password": "$2b$10$DLIJ2GfdEVQNdRKTM/mcjOy63fHIVD7MQ3pcM1LTpXDF1ayyEXbW6",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:46.499Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:46.499Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eea8bd6fe0a11d2e749"
+  },
+  "name": "Rahul Verma",
+  "email": "rahul.verma@athlete.avngear.com",
+  "password": "$2b$10$QFeZyIYq8x0rDE.2/SUXceX540a96t0TCHz2kcYpDJqEX83KyJLSS",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:46.778Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:46.778Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eea8bd6fe0a11d2e74d"
+  },
+  "name": "Ananya Sharma",
+  "email": "ananya.sharma@athlete.avngear.com",
+  "password": "$2b$10$H7wXj/1JV/PJndK7BPA5MelOOFmFVeDbRp8RxP0JDLr.R0A65896q",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:46.988Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:46.988Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eeb8bd6fe0a11d2e766"
+  },
+  "name": "Karan M.",
+  "email": "karan.m@athlete.avngear.com",
+  "password": "$2b$10$q3i37rQYUxSjNjAPhcMneOtoL3lIrRMPXceCrgGv54NFh2Xoep0L2",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:47.287Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:47.287Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eeb8bd6fe0a11d2e76a"
+  },
+  "name": "Devraj P.",
+  "email": "devraj.p@athlete.avngear.com",
+  "password": "$2b$10$raKgafOtWrbJqqFWHbqVV.tV2IHTTAx243jmo0F5nestWA7Ky1yxa",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:47.511Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:47.511Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eeb8bd6fe0a11d2e780"
+  },
+  "name": "Amitabh R.",
+  "email": "amitabh.r@athlete.avngear.com",
+  "password": "$2b$10$wdHArxrecZA/NBeYnoPpSOIgl9SP41E0d.G5wrK8pTyAvXqi2p88y",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:47.741Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:47.741Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eeb8bd6fe0a11d2e784"
+  },
+  "name": "Siddharth G.",
+  "email": "siddharth.g@athlete.avngear.com",
+  "password": "$2b$10$E37rzFIU2StMw7KdfAoj2uY7J5ix7ZM8M6g2Toqb.7PGyu1xoKuIq",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:47.951Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:47.951Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eec8bd6fe0a11d2e798"
+  },
+  "name": "Rohan Mehta",
+  "email": "rohan.mehta@athlete.avngear.com",
+  "password": "$2b$10$Gavg2hkOcJlHbTCXFPEPI.uBfGsP7fClRKbRhHwV4vhqkE5yfy4Si",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:48.172Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:48.172Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eec8bd6fe0a11d2e79c"
+  },
+  "name": "Priya K.",
+  "email": "priya.k@athlete.avngear.com",
+  "password": "$2b$10$7iXqdd3Y2ffsqL5LgFLOYOhpa8334BAnASICC6hn1mPhK.oPSCsnK",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:48.361Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:48.361Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eec8bd6fe0a11d2e7af"
+  },
+  "name": "Neha Kapoor",
+  "email": "neha.kapoor@athlete.avngear.com",
+  "password": "$2b$10$1B.iCaQCnULIswH5.WYi/.1GUSA6LNNxzDYnTkK6BHOVqwymJ6bey",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:48.561Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:48.561Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eec8bd6fe0a11d2e7c3"
+  },
+  "name": "Deepak N.",
+  "email": "deepak.n@athlete.avngear.com",
+  "password": "$2b$10$okk5u1MbOool45JCxBrM0ug.dZKO41617h9VNYxpxCNTj2yYjAv5C",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:48.760Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:48.760Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6a9d0eec8bd6fe0a11d2e7d7"
+  },
+  "name": "Sameer Joshi",
+  "email": "sameer.joshi@athlete.avngear.com",
+  "password": "$2b$10$5ZB4Hop71iHuPdWoAUdgOuuR6Faydj1DbGhJN3VafhePGurbNUb16",
+  "authProvider": "local",
+  "role": "user",
+  "phone": "+919876500000",
+  "isActive": true,
+  "addresses": [],
+  "createdAt": {
+    "$date": "2026-09-06T06:57:48.963Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T06:57:48.963Z"
+  },
+  "__v": 0
+}]

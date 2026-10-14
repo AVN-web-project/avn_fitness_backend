@@ -1,0 +1,3101 @@
+[{
+  "_id": {
+    "$oid": "6a9c248958f3d3c7fe03466a"
+  },
+  "orderNumber": "ORD-20260905-3385",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437777"
+      },
+      "productId": "weightlifting-belt-pro",
+      "variantSku": "AVN-WB-10",
+      "name": "LEVER WEIGHTLIFTING BELT",
+      "variantTitle": "Medium (30\"-34\")",
+      "image": "/knee-wrap.png",
+      "price": 3499,
+      "quantity": 1,
+      "subtotal": 3499,
+      "_id": {
+        "$oid": "6a9c248958f3d3c7fe03466b"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d5343775e"
+      },
+      "productId": "wrist-wrap",
+      "variantSku": "AVN-WW-18",
+      "name": "WRIST WRAP",
+      "variantTitle": "18 Inch Competition",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6a9c248958f3d3c7fe03466c"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "lifting-straps",
+      "variantSku": "AVN-LS-01",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "One Size Fits All",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9c248958f3d3c7fe03466d"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437748"
+      },
+      "productId": "knee-wrap",
+      "variantSku": "AVN-KW-79",
+      "name": "KNEE WRAP",
+      "variantTitle": "Standard 79\"",
+      "image": "/knee-wrap.png",
+      "price": 899,
+      "quantity": 1,
+      "subtotal": 899,
+      "_id": {
+        "$oid": "6a9c248958f3d3c7fe03466e"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 5496,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 5496,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788617865108",
+    "transactionId": "AVN-TXN-1788617865030-5405",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-05T14:17:45.108Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": "09/05/2026, 19:47:45 (IST)"
+    },
+    {
+      "status": "cancelled",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order cancelled by customer: Testing cancellation",
+      "timestamp": "09/05/2026, 22:17:55 (IST)"
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4df5fe3f671030b705b8e"
+      },
+      "changedByRole": "finance_manager",
+      "note": "Refund of ₹5496 recorded (Ref: REF-TXN-913849). Reason: Testing cancellation",
+      "timestamp": {
+        "$date": "2026-09-14T16:05:19.040Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": true,
+    "reason": "Testing cancellation",
+    "cancelledAt": "09/05/2026, 22:17:55 (IST)",
+    "cancelledBy": {
+      "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+    }
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "completed",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": "05/09/2026, 19:47:45 (IST)",
+  "updatedAt": {
+    "$date": "2026-09-14T16:05:19.049Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6a9c30bed08772a370f7a546"
+  },
+  "orderNumber": "ORD-20260905-1578",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d5343775e"
+      },
+      "productId": "wrist-wrap",
+      "variantSku": "AVN-WW-18",
+      "name": "WRIST WRAP",
+      "variantTitle": "18 Inch Competition",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6a9c30bed08772a370f7a547"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "lifting-straps",
+      "variantSku": "AVN-LS-01",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "One Size Fits All",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9c30bed08772a370f7a548"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1098,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 1197,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "upi",
+    "paymentOrderId": "pay_ord_1788620990696",
+    "transactionId": "AVN-TXN-1788620990563-6161",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-05T15:09:50.696Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via upi.",
+      "timestamp": "09/05/2026, 20:39:50 (IST)"
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": "09/05/2026, 21:52:00 (IST)"
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": {
+        "$date": "2026-09-06T09:22:20.491Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": "05/09/2026, 20:39:50 (IST)",
+  "updatedAt": {
+    "$date": "2026-09-06T09:22:20.502Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6a9d164dc66e2407511a2c5a"
+  },
+  "orderNumber": "ORD-20260906-8824",
+  "user": {
+    "$oid": "6a9d164cee3a470d2d238df5"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437754"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437754",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Standard",
+      "image": "",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6a9d164dc66e2407511a2c5b"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 699,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 798,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "Cart Test Athlete",
+    "phone": "9876543210",
+    "street": "123 Powerlifting Way",
+    "city": "Gurugram",
+    "state": "Haryana",
+    "pincode": "122002",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788679757515",
+    "transactionId": "TXN-79757515",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-06T07:29:17.515Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "cancelled",
+  "statusHistory": [
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9d164cee3a470d2d238df5"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-06T07:29:17.515Z"
+      }
+    },
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from paid_confirmed to processing by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-25T17:42:43.705Z"
+      }
+    },
+    {
+      "status": "cancelled",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from processing to cancelled by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-25T17:42:57.582Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-06T07:29:17.526Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T17:42:57.585Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6a9d1897b830865668143678"
+  },
+  "orderNumber": "ORD-20260906-7355",
+  "user": {
+    "$oid": "6a9c530e55b14eca9e4db0a2"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d5343776f"
+      },
+      "productId": "6a9bfa0e23cfcf3d5343776f",
+      "variantSku": "AVN-YB-08-NAT",
+      "name": "YOGA BELT",
+      "variantTitle": "8ft Standard",
+      "image": "/yoga-belt.png",
+      "price": 399,
+      "quantity": 2,
+      "subtotal": 798,
+      "_id": {
+        "$oid": "6a9d1897b830865668143679"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 798,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 897,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "Vikram Malhotra",
+    "phone": "+91 98765 43210",
+    "street": "House No. 42-B, Flat 402, 4th Floor, Sector 29, Golf Course Road",
+    "city": "Gurugram",
+    "state": "Haryana",
+    "pincode": "122002",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "upi",
+    "paymentOrderId": "pay_ord_1788680343892",
+    "transactionId": "TXN-1788680343863-3038",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-06T07:39:03.892Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9c530e55b14eca9e4db0a2"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via upi.",
+      "timestamp": {
+        "$date": "2026-09-06T07:39:03.892Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9c530e55b14eca9e4db0a2"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": {
+        "$date": "2026-09-06T07:39:11.412Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-06T07:39:03.906Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T07:39:11.419Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6a9d1b7e66a85172d661e7f7"
+  },
+  "orderNumber": "ORD-20260906-1476",
+  "user": {
+    "$oid": "6a9c530e55b14eca9e4db0a2"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437767",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9d1b7e66a85172d661e7f8"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437780"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437780",
+      "variantSku": "AVN-AS-04-M",
+      "name": "ANKLE COMPRESSION SLEEVE",
+      "variantTitle": "Medium (Men 7-9 / Women 8-10)",
+      "image": "/elbow-wrap.png",
+      "price": 449,
+      "quantity": 1,
+      "subtotal": 449,
+      "_id": {
+        "$oid": "6a9d1b7e66a85172d661e7f9"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1048,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 1147,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "Vikram Malhotra",
+    "phone": "+91 98765 43210",
+    "street": "House No. 42-B, Flat 402, 4th Floor, Sector 29, Golf Course Road",
+    "city": "Gurugram",
+    "state": "Haryana",
+    "pincode": "122002",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "netbanking",
+    "paymentOrderId": "pay_ord_1788681086230",
+    "transactionId": "TXN-1788681086210-3791",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-06T07:51:26.230Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9c530e55b14eca9e4db0a2"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via netbanking.",
+      "timestamp": {
+        "$date": "2026-09-06T07:51:26.230Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9c530e55b14eca9e4db0a2"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": {
+        "$date": "2026-09-06T07:51:31.769Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-06T07:51:26.242Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-06T07:51:31.771Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6a9d3bfbbd27ef2405d07e1d"
+  },
+  "orderNumber": "ORD-20260906-1174",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437767",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Standard",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9d3bfbbd27ef2405d07e1e"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437754"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437754",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 2,
+      "subtotal": 1398,
+      "_id": {
+        "$oid": "6a9d3bfbbd27ef2405d07e1f"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1997,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1997,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "netbanking",
+    "paymentOrderId": "pay_ord_1788689403203",
+    "transactionId": "pay_mock_1788689403257",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-06T10:10:03.291Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via netbanking.",
+      "timestamp": {
+        "$date": "2026-09-06T10:10:03.203Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Payment verified and captured via netbanking.",
+      "timestamp": {
+        "$date": "2026-09-06T10:10:03.292Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": {
+        "$date": "2026-09-06T10:10:09.204Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Customer requested return: Customer requested return via order details",
+      "timestamp": {
+        "$date": "2026-09-06T10:10:32.810Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request rejected. Reason: Invalid request",
+      "timestamp": {
+        "$date": "2026-09-26T06:35:52.409Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Customer requested return via order details",
+    "requestedAt": {
+      "$date": "2026-09-06T10:10:32.809Z"
+    },
+    "status": "rejected",
+    "refundAmount": 1997,
+    "reviewNotes": "Invalid request",
+    "reviewedAt": {
+      "$date": "2026-09-26T06:35:52.403Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-06T10:10:03.223Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-26T06:35:52.433Z"
+  },
+  "__v": 4
+},
+{
+  "_id": {
+    "$oid": "6a9e3609e2ee7b7b62813a1e"
+  },
+  "orderNumber": "ORD-20260907-7295",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437767",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9e3609e2ee7b7b62813a1f"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437754"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437754",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6a9e3609e2ee7b7b62813a20"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1298,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1298,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1489439844",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "netbanking",
+    "paymentOrderId": "pay_ord_1788753417171",
+    "transactionId": "TXN-53417171",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-07T05:33:28.048Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "Delhivery",
+    "trackingNumber": "TRK58143869",
+    "dispatchedAt": {
+      "$date": "2026-09-25T17:42:26.478Z"
+    },
+    "estimatedDeliveryDate": null
+  },
+  "orderStatus": "shipped",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via netbanking.",
+      "timestamp": {
+        "$date": "2026-09-07T03:56:57.171Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Dispatched via Delhivery (Tracking: TRK58143869)",
+      "timestamp": {
+        "$date": "2026-09-25T17:42:26.485Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-07T03:56:57.184Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T17:42:26.501Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6a9e3636e2ee7b7b62813b30"
+  },
+  "orderNumber": "ORD-20260907-1193",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437767",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9e3636e2ee7b7b62813b31"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437754"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437754",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6a9e3636e2ee7b7b62813b32"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1298,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1298,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1489439844",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788753462648",
+    "transactionId": "TXN-53462648",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-07T03:58:40.202Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-07T03:57:42.648Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order simulated as delivered and accepted for athlete review verification.",
+      "timestamp": {
+        "$date": "2026-09-07T03:58:40.202Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Customer requested return: Customer requested return via order details",
+      "timestamp": {
+        "$date": "2026-09-07T03:59:44.917Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: Valid request",
+      "timestamp": {
+        "$date": "2026-09-25T17:36:32.590Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹1298 recorded (Ref: REF-TXN-744413). Reason: Customer requested return via order details",
+      "timestamp": {
+        "$date": "2026-09-26T13:35:51.721Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Customer requested return via order details",
+    "requestedAt": {
+      "$date": "2026-09-07T03:59:44.915Z"
+    },
+    "status": "completed",
+    "refundAmount": 1298,
+    "reviewNotes": "Valid request",
+    "reviewedAt": {
+      "$date": "2026-09-25T17:36:32.585Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-07T03:57:42.654Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-26T13:35:51.744Z"
+  },
+  "__v": 4
+},
+{
+  "_id": {
+    "$oid": "6a9e4186e2ee7b7b62814032"
+  },
+  "orderNumber": "ORD-20260907-7689",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d5343775e"
+      },
+      "productId": "6a9bfa0e23cfcf3d5343775e",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6a9e4186e2ee7b7b62814033"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437767"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437767",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6a9e4186e2ee7b7b62814034"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437754"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437754",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6a9e4186e2ee7b7b62814035"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1797,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1797,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788756358322",
+    "transactionId": "TXN-56358322",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-07T06:34:50.959Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-07T04:45:58.322Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order delivered and payment collected upon delivery.",
+      "timestamp": {
+        "$date": "2026-09-07T06:34:50.962Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-07T04:45:58.330Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-07T06:34:50.978Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6a9e4d9d88b83c1fee863fd0"
+  },
+  "orderNumber": "ORD-20260907-7301",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d5343775e"
+      },
+      "productId": "6a9bfa0e23cfcf3d5343775e",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6a9e4d9d88b83c1fee863fd1"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437777"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437777",
+      "variantSku": "AVN-LB-10-M",
+      "name": "LEVER WEIGHTLIFTING BELT",
+      "variantTitle": "Medium (30\"-34\") / Stealth Black",
+      "image": "/knee-wrap.png",
+      "price": 3499,
+      "quantity": 1,
+      "subtotal": 3499,
+      "_id": {
+        "$oid": "6a9e4d9d88b83c1fee863fd2"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 3998,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 3998,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788759453880",
+    "transactionId": "TXN-59453880",
+    "paymentStatus": "pending"
+  },
+  "shipmentInfo": {
+    "carrier": "Delhivery",
+    "trackingNumber": "TRK57800897",
+    "dispatchedAt": {
+      "$date": "2026-09-25T17:36:48.956Z"
+    },
+    "estimatedDeliveryDate": null
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-07T05:37:33.880Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Dispatched via Delhivery (Tracking: TRK57800897)",
+      "timestamp": {
+        "$date": "2026-09-25T17:36:48.958Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from shipped to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-25T17:43:08.867Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-07T05:37:33.895Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T17:43:08.870Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6a9e502e2428e3a3efe92b02"
+  },
+  "orderNumber": "ORD-20260907-3493",
+  "user": {
+    "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6a9bfa0e23cfcf3d53437748"
+      },
+      "productId": "6a9bfa0e23cfcf3d53437748",
+      "variantSku": "AVN-KW-79-RED",
+      "name": "KNEE WRAP",
+      "variantTitle": "Crimson Red - Standard 79\"",
+      "image": "/knee-wrap.png",
+      "price": 899,
+      "quantity": 1,
+      "subtotal": 899,
+      "_id": {
+        "$oid": "6a9e502e2428e3a3efe92b03"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 899,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 998,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1788760110670",
+    "transactionId": "TXN-60110670",
+    "paymentStatus": "refunded"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-07T05:48:30.670Z"
+      }
+    },
+    {
+      "status": "cancelled",
+      "changedBy": {
+        "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+      },
+      "changedByRole": "user",
+      "note": "Order cancelled by customer. Reason: Too expensive",
+      "timestamp": {
+        "$date": "2026-09-07T06:35:49.668Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4df5fe3f671030b705b8e"
+      },
+      "changedByRole": "finance_manager",
+      "note": "Refund of ₹998 recorded (Ref: REF-TXN-907792). Reason: Too expensive",
+      "timestamp": {
+        "$date": "2026-09-14T16:05:10.040Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": true,
+    "reason": "Too expensive",
+    "cancelledAt": {
+      "$date": "2026-09-07T06:35:49.665Z"
+    },
+    "cancelledBy": {
+      "$oid": "6a9bd3bd9df7c6ffe304ffd8"
+    }
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "completed",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-07T05:48:30.683Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-14T16:05:10.063Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6ab8a29263c2ae59d8315b89"
+  },
+  "orderNumber": "ORD-20260927-7145",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 2,
+      "subtotal": 1198,
+      "_id": {
+        "$oid": "6ab8a29263c2ae59d8315b8a"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1198,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1198,
+    "tax": 0,
+    "codSurcharge": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "card",
+    "paymentOrderId": "pay_ord_1790485138035",
+    "transactionId": "TXN-85138035",
+    "paymentStatus": "pending",
+    "method": ""
+  },
+  "shipmentInfo": {
+    "carrier": "Delhivery",
+    "trackingNumber": "TRK85319894",
+    "dispatchedAt": {
+      "$date": "2026-09-27T05:02:03.480Z"
+    },
+    "estimatedDeliveryDate": {
+      "$date": "2026-10-01T05:02:03.457Z"
+    }
+  },
+  "orderStatus": "return_requested",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via card.",
+      "timestamp": {
+        "$date": "2026-09-27T04:58:58.035Z"
+      }
+    },
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from pending_payment to pending_payment by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-27T05:01:51.076Z"
+      }
+    },
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from pending_payment to processing by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-27T05:01:57.378Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Dispatched via Delhivery (Tracking: TRK85319894)",
+      "timestamp": {
+        "$date": "2026-09-27T05:02:03.480Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from shipped to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:48:15.145Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Customer requested return. Reason: Didn't dind the quality worth it",
+      "timestamp": {
+        "$date": "2026-09-30T09:49:00.756Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Didn't dind the quality worth it",
+    "requestedAt": {
+      "$date": "2026-09-30T09:49:00.753Z"
+    },
+    "status": "pending",
+    "refundAmount": 1198,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-27T04:58:58.042Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-30T09:49:00.763Z"
+  },
+  "__v": 5
+},
+{
+  "_id": {
+    "$oid": "6ab8a31663c2ae59d8315cc9"
+  },
+  "orderNumber": "ORD-20260927-6617",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 2,
+      "subtotal": 998,
+      "_id": {
+        "$oid": "6ab8a31663c2ae59d8315cca"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 998,
+    "discount": 0,
+    "shippingFee": 99,
+    "totalPayable": 1097,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1790485270132",
+    "transactionId": "TXN-85270132",
+    "paymentStatus": "pending"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "delivered",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-27T05:01:10.132Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from processing to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-27T05:02:14.426Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-27T05:01:10.137Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-27T05:02:14.426Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6ab8a3a063c2ae59d8315e30"
+  },
+  "orderNumber": "ORD-20260927-1477",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6ab8a3a063c2ae59d8315e31"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6ab8a3a063c2ae59d8315e32"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6ab8a3a063c2ae59d8315e33"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1797,
+    "discount": 0,
+    "shippingFee": 0,
+    "totalPayable": 1797,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "paymentOrderId": "pay_ord_1790485408293",
+    "transactionId": "TXN-85408292",
+    "paymentStatus": "pending"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "cancelled",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-27T05:03:28.293Z"
+      }
+    },
+    {
+      "status": "cancelled",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order cancelled by customer. Reason: Took too long to deliver",
+      "timestamp": {
+        "$date": "2026-09-27T05:04:21.075Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": true,
+    "reason": "Took too long to deliver",
+    "cancelledAt": {
+      "$date": "2026-09-27T05:04:21.075Z"
+    },
+    "cancelledBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-27T05:03:28.297Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-27T05:04:21.088Z"
+  },
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "6abcdaa264f18ea66f9b2911"
+  },
+  "orderNumber": "ORD-20260930-3609",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 2,
+      "subtotal": 998,
+      "_id": {
+        "$oid": "6abcdaa264f18ea66f9b2912"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ec2"
+      },
+      "productId": "6aa4f76aea87cd7da3303ec2",
+      "variantSku": "AVN-YB-08-NAT",
+      "name": "YOGA BELT",
+      "variantTitle": "Natural Canvas / 8ft",
+      "image": "/yoga-belt.png",
+      "price": 399,
+      "quantity": 1,
+      "subtotal": 399,
+      "_id": {
+        "$oid": "6abcdaa264f18ea66f9b2913"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abcdaa264f18ea66f9b2914"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303edb"
+      },
+      "productId": "6aa4f76aea87cd7da3303edb",
+      "variantSku": "LEG-4249",
+      "name": "LEGACY POWER WRAPS (DISCONTINUED)",
+      "variantTitle": "Standard",
+      "image": "/knee-wrap.png",
+      "price": 299,
+      "quantity": 1,
+      "subtotal": 299,
+      "_id": {
+        "$oid": "6abcdaa264f18ea66f9b2915"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6abcdaa264f18ea66f9b2916"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 2994,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 0,
+    "totalPayable": 2994,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "mock",
+    "method": "upi",
+    "paymentOrderId": "pay_ord_1790761634049",
+    "transactionId": "mock_pay_1790761634391",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-30T09:47:14.637Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "processing",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:47:14.049Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Payment verified and captured via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:47:14.637Z"
+      }
+    },
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from paid_confirmed to processing by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:47:35.598Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "none",
+    "refundAmount": 0,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T09:47:14.071Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-30T09:47:35.604Z"
+  },
+  "__v": 2
+},
+{
+  "_id": {
+    "$oid": "6abcdb2364f18ea66f9b2b7d"
+  },
+  "orderNumber": "ORD-20260930-9168",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abcdb2364f18ea66f9b2b7e"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6abcdb2364f18ea66f9b2b7f"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6abcdb2364f18ea66f9b2b80"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1797,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 0,
+    "totalPayable": 1797,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "mock",
+    "method": "netbanking",
+    "paymentOrderId": "pay_ord_1790761763682",
+    "transactionId": "mock_pay_1790761763749",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-30T09:49:23.774Z"
+    },
+    "refundTransactionId": "REF-TXN-995492"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:49:23.682Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Payment verified and captured via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:49:23.775Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from paid_confirmed to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:49:42.215Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Customer requested return. Reason: not good",
+      "timestamp": {
+        "$date": "2026-09-30T09:51:57.306Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: ok\n",
+      "timestamp": {
+        "$date": "2026-09-30T09:53:03.436Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹1797 recorded (Ref: REF-TXN-995492). Reason: not good",
+      "timestamp": {
+        "$date": "2026-09-30T09:53:31.532Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "not good",
+    "requestedAt": {
+      "$date": "2026-09-30T09:51:57.303Z"
+    },
+    "status": "completed",
+    "refundAmount": 1797,
+    "reviewNotes": "ok\n",
+    "reviewedAt": {
+      "$date": "2026-09-30T09:53:03.434Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T09:49:23.689Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-30T09:53:31.535Z"
+  },
+  "__v": 5
+},
+{
+  "_id": {
+    "$oid": "6abcdb8164f18ea66f9b2d46"
+  },
+  "orderNumber": "ORD-20260930-6967",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abcdb8164f18ea66f9b2d47"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6abcdb8164f18ea66f9b2d48"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ec2"
+      },
+      "productId": "6aa4f76aea87cd7da3303ec2",
+      "variantSku": "AVN-YB-08-NAT",
+      "name": "YOGA BELT",
+      "variantTitle": "Natural Canvas / 8ft",
+      "image": "/yoga-belt.png",
+      "price": 399,
+      "quantity": 1,
+      "subtotal": 399,
+      "_id": {
+        "$oid": "6abcdb8164f18ea66f9b2d49"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1497,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 0,
+    "totalPayable": 1497,
+    "tax": 0,
+    "handlingFee": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "mock",
+    "method": "card",
+    "paymentOrderId": "pay_ord_1790761857333",
+    "transactionId": "mock_pay_1790761857388",
+    "paymentStatus": "captured",
+    "paidAt": {
+      "$date": "2026-09-30T09:50:57.410Z"
+    }
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "returned",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:50:57.333Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Payment verified and captured via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T09:50:57.411Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from paid_confirmed to shipped by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:51:11.405Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from shipped to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:51:17.170Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Customer requested return. Reason: Too goofd to be used",
+      "timestamp": {
+        "$date": "2026-09-30T09:52:22.217Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: Okay",
+      "timestamp": {
+        "$date": "2026-10-10T15:53:59.282Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Too goofd to be used",
+    "requestedAt": {
+      "$date": "2026-09-30T09:52:22.213Z"
+    },
+    "status": "approved",
+    "refundAmount": 1497,
+    "reviewNotes": "Okay",
+    "reviewedAt": {
+      "$date": "2026-10-10T15:53:59.279Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T09:50:57.341Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-10T15:53:59.298Z"
+  },
+  "__v": 5
+},
+{
+  "_id": {
+    "$oid": "6abcdc3a64f18ea66f9b311f"
+  },
+  "orderNumber": "ORD-20260930-7145",
+  "user": {
+    "$oid": "6aa4efd45dca765d89ae6682"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abcdc3a64f18ea66f9b3120"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6abcdc3a64f18ea66f9b3121"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6abcdc3a64f18ea66f9b3122"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1797,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 50,
+    "totalPayable": 1847,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "mcfcck",
+    "phone": "1234567890",
+    "street": "Gurugram",
+    "city": "haryana",
+    "state": "haryana",
+    "pincode": "111111",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "method": "cod",
+    "paymentOrderId": "pay_ord_1790762042224",
+    "transactionId": "TXN-62042224",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-30T10:01:08.991Z"
+    },
+    "refundTransactionId": "REF-TXN-574908"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-30T09:54:02.224Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from processing to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T09:54:15.253Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Customer requested return. Reason: Not good",
+      "timestamp": {
+        "$date": "2026-09-30T10:01:08.999Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: COD Okay",
+      "timestamp": {
+        "$date": "2026-09-30T10:01:33.534Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹1797 recorded (Ref: REF-TXN-574908). Reason: Not good",
+      "timestamp": {
+        "$date": "2026-09-30T10:03:16.268Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Not good",
+    "requestedAt": {
+      "$date": "2026-09-30T10:01:08.991Z"
+    },
+    "status": "completed",
+    "refundAmount": 1797,
+    "refundAccountDetails": {
+      "method": "upi",
+      "upiId": "brucewayn@laxmichitfund"
+    },
+    "reviewNotes": "COD Okay",
+    "reviewedAt": {
+      "$date": "2026-09-30T10:01:33.533Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T09:54:02.238Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-30T10:03:16.275Z"
+  },
+  "__v": 4
+},
+{
+  "_id": {
+    "$oid": "6abce1d4120da5d179fbea25"
+  },
+  "orderNumber": "ORD-20260930-5542",
+  "user": {
+    "$oid": "6a985e11b371e64071065fc3"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abce1d4120da5d179fbea26"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6abce1d4120da5d179fbea27"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6abce1d4120da5d179fbea28"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ec2"
+      },
+      "productId": "6aa4f76aea87cd7da3303ec2",
+      "variantSku": "AVN-YB-08-NAT",
+      "name": "YOGA BELT",
+      "variantTitle": "Natural Canvas / 8ft",
+      "image": "/yoga-belt.png",
+      "price": 399,
+      "quantity": 1,
+      "subtotal": 399,
+      "_id": {
+        "$oid": "6abce1d4120da5d179fbea29"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 2196,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 50,
+    "totalPayable": 2246,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "Rahul Sharma",
+    "phone": "+919876543212",
+    "street": "Flat 402, Green Valley Apartments, Indiranagar",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560038",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "cod",
+    "method": "cod",
+    "paymentOrderId": "pay_ord_1790763476602",
+    "transactionId": "TXN-63476602",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-30T10:18:51.039Z"
+    },
+    "refundTransactionId": "REF-TXN-674847"
+  },
+  "shipmentInfo": {
+    "carrier": "Delhivery",
+    "trackingNumber": "TRK63488451",
+    "dispatchedAt": {
+      "$date": "2026-09-30T10:18:11.963Z"
+    },
+    "estimatedDeliveryDate": {
+      "$date": "2026-10-04T10:18:11.908Z"
+    }
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "processing",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via cod.",
+      "timestamp": {
+        "$date": "2026-09-30T10:17:56.602Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Dispatched via Delhivery (Tracking: TRK63488451)",
+      "timestamp": {
+        "$date": "2026-09-30T10:18:11.964Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from shipped to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-09-30T10:18:18.670Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Customer requested return. Reason: Different product",
+      "timestamp": {
+        "$date": "2026-09-30T10:18:51.040Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: Okay",
+      "timestamp": {
+        "$date": "2026-09-30T10:21:08.421Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹2196 recorded (Ref: REF-TXN-674847). Reason: Different product",
+      "timestamp": {
+        "$date": "2026-09-30T10:21:20.575Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Different product",
+    "requestedAt": {
+      "$date": "2026-09-30T10:18:51.039Z"
+    },
+    "status": "completed",
+    "refundAmount": 2196,
+    "refundAccountDetails": {
+      "method": "upi",
+      "upiId": "brucewayne@laxmichitfund"
+    },
+    "reviewNotes": "Okay",
+    "reviewedAt": {
+      "$date": "2026-09-30T10:21:08.419Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T10:17:56.618Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-30T10:21:20.579Z"
+  },
+  "__v": 5
+},
+{
+  "_id": {
+    "$oid": "6abce53f9ac738afd79921cc"
+  },
+  "orderNumber": "ORD-20260930-5991",
+  "user": {
+    "$oid": "6a985e11b371e64071065fc3"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6abce53f9ac738afd79921cd"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6abce53f9ac738afd79921ce"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1098,
+    "discount": 0,
+    "shippingFee": 0,
+    "codSurcharge": 0,
+    "totalPayable": 1098,
+    "tax": 0,
+    "handlingFee": 0
+  },
+  "shippingAddress": {
+    "fullName": "Rahul Sharma",
+    "phone": "+919876543212",
+    "street": "Flat 402, Green Valley Apartments, Indiranagar",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560038",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "mock",
+    "method": "upi",
+    "paymentOrderId": "pay_ord_1790764351859",
+    "transactionId": "mock_pay_1790764352090",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-09-30T10:32:32.251Z"
+    },
+    "refundTransactionId": "REF-TXN-547771"
+  },
+  "shipmentInfo": {
+    "carrier": "",
+    "trackingNumber": ""
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T10:32:31.859Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Payment verified and captured via mock.",
+      "timestamp": {
+        "$date": "2026-09-30T10:32:32.252Z"
+      }
+    },
+    {
+      "status": "cancelled",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Order cancelled by customer. Reason: Wrong product choosen",
+      "timestamp": {
+        "$date": "2026-09-30T10:32:56.054Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹1098 recorded (Ref: REF-TXN-547771). Reason: Wrong product choosen",
+      "timestamp": {
+        "$date": "2026-10-10T15:52:31.570Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": true,
+    "reason": "Wrong product choosen",
+    "cancelledAt": {
+      "$date": "2026-09-30T10:32:56.053Z"
+    },
+    "cancelledBy": {
+      "$oid": "6a985e11b371e64071065fc3"
+    }
+  },
+  "returnRequest": {
+    "isRequested": false,
+    "reason": "",
+    "status": "completed",
+    "refundAmount": 1098,
+    "reviewNotes": ""
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-09-30T10:32:31.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-10T15:52:31.590Z"
+  },
+  "__v": 3
+},
+{
+  "_id": {
+    "$oid": "6aca64f4ccc37cc760000b36"
+  },
+  "orderNumber": "ORD-20261010-4990",
+  "user": {
+    "$oid": "6a985e11b371e64071065fc3"
+  },
+  "items": [
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eba"
+      },
+      "productId": "6aa4f76aea87cd7da3303eba",
+      "variantSku": "AVN-LS-01-BLK",
+      "name": "LIFTING STRAPS",
+      "variantTitle": "Stealth Black / One Size",
+      "image": "/lifting-straps.png",
+      "price": 599,
+      "quantity": 1,
+      "subtotal": 599,
+      "_id": {
+        "$oid": "6aca64f4ccc37cc760000b37"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303eb1"
+      },
+      "productId": "6aa4f76aea87cd7da3303eb1",
+      "variantSku": "AVN-WW-18-RED",
+      "name": "WRIST WRAP",
+      "variantTitle": "Crimson Red - 18\"",
+      "image": "/wrist-wrap.png",
+      "price": 499,
+      "quantity": 1,
+      "subtotal": 499,
+      "_id": {
+        "$oid": "6aca64f4ccc37cc760000b38"
+      }
+    },
+    {
+      "product": {
+        "$oid": "6aa4f76aea87cd7da3303ea7"
+      },
+      "productId": "6aa4f76aea87cd7da3303ea7",
+      "variantSku": "AVN-EW-01-RED-M",
+      "name": "ELBOW WRAP",
+      "variantTitle": "Crimson Red - Medium",
+      "image": "/elbow-wrap.png",
+      "price": 699,
+      "quantity": 1,
+      "subtotal": 699,
+      "_id": {
+        "$oid": "6aca64f4ccc37cc760000b39"
+      }
+    }
+  ],
+  "pricing": {
+    "subtotal": 1797,
+    "discount": 0,
+    "shippingFee": 0,
+    "handlingFee": 10,
+    "codSurcharge": 0,
+    "totalPayable": 1807,
+    "tax": 0
+  },
+  "shippingAddress": {
+    "fullName": "Rahul Sharma",
+    "phone": "+919876543212",
+    "street": "Flat 402, Green Valley Apartments, Indiranagar",
+    "city": "Bengaluru",
+    "state": "Karnataka",
+    "pincode": "560038",
+    "country": "India"
+  },
+  "paymentInfo": {
+    "provider": "mock",
+    "method": "upi",
+    "paymentOrderId": "pay_ord_1791649012533",
+    "transactionId": "mock_pay_1791649012964",
+    "paymentStatus": "refunded",
+    "paidAt": {
+      "$date": "2026-10-10T16:16:53.013Z"
+    },
+    "refundTransactionId": "REF-TXN-180726"
+  },
+  "shipmentInfo": {
+    "carrier": "Delhivery",
+    "trackingNumber": "TRK49048380",
+    "dispatchedAt": {
+      "$date": "2026-10-10T16:17:30.695Z"
+    },
+    "estimatedDeliveryDate": {
+      "$date": "2026-10-14T16:17:30.562Z"
+    }
+  },
+  "orderStatus": "refunded",
+  "statusHistory": [
+    {
+      "status": "pending_payment",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Order placed via mock.",
+      "timestamp": {
+        "$date": "2026-10-10T16:16:52.533Z"
+      }
+    },
+    {
+      "status": "paid_confirmed",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Payment verified and captured via mock.",
+      "timestamp": {
+        "$date": "2026-10-10T16:16:53.015Z"
+      }
+    },
+    {
+      "status": "shipped",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Dispatched via Delhivery (Tracking: TRK49048380)",
+      "timestamp": {
+        "$date": "2026-10-10T16:17:30.699Z"
+      }
+    },
+    {
+      "status": "delivered",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Status updated from shipped to delivered by Super Administrator",
+      "timestamp": {
+        "$date": "2026-10-10T16:17:36.956Z"
+      }
+    },
+    {
+      "status": "return_requested",
+      "changedBy": {
+        "$oid": "6a985e11b371e64071065fc3"
+      },
+      "changedByRole": "user",
+      "note": "Customer requested return. Reason: Goodd",
+      "timestamp": {
+        "$date": "2026-10-10T16:35:20.857Z"
+      }
+    },
+    {
+      "status": "returned",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Return request approved. Returned items inspected. Note: fcfcfj",
+      "timestamp": {
+        "$date": "2026-10-10T16:36:14.779Z"
+      }
+    },
+    {
+      "status": "refunded",
+      "changedBy": {
+        "$oid": "6aa4efd45dca765d89ae6682"
+      },
+      "changedByRole": "super_admin",
+      "note": "Refund of ₹1797 recorded (Ref: REF-TXN-180726). Reason: Goodd",
+      "timestamp": {
+        "$date": "2026-10-10T16:36:24.355Z"
+      }
+    }
+  ],
+  "cancellation": {
+    "isCancelled": false,
+    "reason": ""
+  },
+  "returnRequest": {
+    "isRequested": true,
+    "reason": "Goodd",
+    "requestedAt": {
+      "$date": "2026-10-10T16:35:20.849Z"
+    },
+    "status": "completed",
+    "refundAmount": 1797,
+    "reviewNotes": "fcfcfj",
+    "reviewedAt": {
+      "$date": "2026-10-10T16:36:14.777Z"
+    },
+    "reviewedBy": {
+      "$oid": "6aa4efd45dca765d89ae6682"
+    }
+  },
+  "appliedCoupon": null,
+  "createdAt": {
+    "$date": "2026-10-10T16:16:52.560Z"
+  },
+  "updatedAt": {
+    "$date": "2026-10-10T16:36:24.363Z"
+  },
+  "__v": 6
+}]
