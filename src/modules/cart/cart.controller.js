@@ -172,6 +172,15 @@ export const getCart = asyncHandler(async (req, res) => {
   }
 
   const cartDetails = await calculateCartTotals(cart);
+
+  // Self-heal: drop cart items that no longer resolve to an active product/variant,
+  // so a stale entry can't linger invisibly and block checkout later.
+  if (cartDetails.items.length !== cart.items.length) {
+    const validIds = new Set(cartDetails.items.map((i) => String(i._id)));
+    cart.items = cart.items.filter((it) => validIds.has(String(it._id)));
+    await cart.save();
+  }
+
   return ApiResponse.success(res, { cart: cartDetails, cartId: cart._id }, 'Cart retrieved successfully');
 });
 

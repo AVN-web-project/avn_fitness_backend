@@ -1,9 +1,17 @@
 import { z } from 'zod';
+import { isDisposableEmail, DISPOSABLE_EMAIL_MESSAGE } from '../../utils/disposableEmail.js';
+
+const permanentEmail = z
+  .string()
+  .email('Invalid email address')
+  .refine((value) => !isDisposableEmail(value), {
+    message: DISPOSABLE_EMAIL_MESSAGE,
+  });
 
 export const registerSchema = z.object({
   body: z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-    email: z.string().email('Invalid email address'),
+    email: permanentEmail,
     password: z.string().min(6, 'Password must be at least 6 characters').optional(),
     phone: z.string().optional(),
     otp: z.string().min(6, 'Verification code must be 6 digits').max(6, 'Verification code must be 6 digits'),
@@ -18,10 +26,17 @@ export const loginSchema = z.object({
 });
 
 export const sendOtpSchema = z.object({
-  body: z.object({
-    email: z.string().email('Invalid email address'),
-    purpose: z.enum(['login', 'register']).optional(),
-  }),
+  body: z
+    .object({
+      email: z.string().email('Invalid email address'),
+      purpose: z.enum(['login', 'register']).optional(),
+    })
+    // Block disposable addresses only for sign-up. Login OTP is left alone so an
+    // existing account is never locked out by a stricter rule added later.
+    .refine((data) => data.purpose !== 'register' || !isDisposableEmail(data.email), {
+      path: ['email'],
+      message: DISPOSABLE_EMAIL_MESSAGE,
+    }),
 });
 
 export const verifyOtpSchema = z.object({

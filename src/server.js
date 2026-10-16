@@ -3,6 +3,7 @@ import app from './app.js';
 import { env } from './config/env.js';
 import { connectDB, disconnectDB } from './config/db.js';
 import { logger } from './config/logger.js';
+import { warmupDisposableList } from './utils/disposableEmail.js';
 
 const server = http.createServer(app);
 
@@ -10,6 +11,10 @@ const startServer = async () => {
   try {
     // Connect Database
     await connectDB();
+
+    // Warm the disposable-email blocklist (non-blocking)
+    warmupDisposableList();
+
 
     // Start Listening
     server.listen(env.PORT, () => {

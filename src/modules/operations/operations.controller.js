@@ -6,6 +6,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
+import { sendRefundConfirmationEmail } from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import {
   ACTIVITY_ACTIONS,
@@ -299,7 +300,7 @@ export const recordRefund = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { refundTransactionId, refundAmount, reason } = req.body;
 
-  const order = await Order.findById(id);
+  const order = await Order.findById(id).populate('user', 'name email');
   if (!order) throw ApiError.notFound('Order not found');
 
   const validRefundStates = [ORDER_STATUS.RETURNED, ORDER_STATUS.CANCELLED];
@@ -373,6 +374,13 @@ export const recordRefund = asyncHandler(async (req, res) => {
     },
     ipAddress: req.ip,
   });
+
+  // Refund confirmation — non-blocking.
+  if (order.user?.email) {
+    sendRefundConfirmationEmail(order.user.email, order).catch((err) =>
+      console.warn('⚠️ Refund email dispatch failed:', err.message)
+    );
+  }
 
   return ApiResponse.success(res, { order }, `Refund of ₹${finalRefundAmount} recorded successfully`);
 });

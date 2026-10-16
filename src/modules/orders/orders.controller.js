@@ -4,6 +4,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ORDER_STATUS, ROLES } from '../../config/constants.js';
+import { sendOrderCancellationEmail } from '../../utils/email.service.js';
 
 export const getMyOrders = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
@@ -113,6 +114,13 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
   }
 
   await order.save();
+
+  // Cancellation confirmation — non-blocking, never delay the response on email.
+  if (req.user?.email) {
+    sendOrderCancellationEmail(req.user.email, order).catch((err) =>
+      console.warn('⚠️ Cancellation email dispatch failed:', err.message)
+    );
+  }
 
   return ApiResponse.success(res, { order }, 'Order cancelled successfully');
 });

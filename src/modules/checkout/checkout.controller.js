@@ -30,7 +30,6 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     address,
     paymentProvider = 'razorpay',
     paymentMethod,
-    items: bodyItems,
   } = req.body;
   const selectedMethod = String(paymentMethod || req.body.paymentMethodType || '').toLowerCase();
   const provider = selectedMethod === 'cod'
@@ -60,98 +59,80 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     country: selectedAddress?.country || 'India',
   };
 
+  // ---------------------------------------------------------------------------
+  // SERVER-AUTHORITATIVE PRICING
+  // Every figure below is derived from the database: the server-side cart, the
+  // product variant prices, and a re-validated coupon. The request body is NEVER
+  // trusted for items, prices, discount, shipping, or the payable total.
+  // ---------------------------------------------------------------------------
   let subtotal = 0;
   const orderItems = [];
 
-  // Support direct body items (e.g. from frontend checkout) or MongoDB cart
-  if (Array.isArray(bodyItems) && bodyItems.length > 0) {
-    for (const item of bodyItems) {
-      const price = Number(item.price ?? item.unitPrice ?? 0);
-      const qty = Math.max(1, Number(item.quantity ?? item.qty ?? 1));
-      const itemSubtotal = price * qty;
-      subtotal += itemSubtotal;
+  const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
+  if (!cart || !cart.items || cart.items.length === 0) {
+    throw ApiError.badRequest('Your shopping cart is empty.');
+  }
 
-      let dbProductId = null;
-      if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
-        dbProductId = item.productId;
-      } else if (item.id && mongoose.Types.ObjectId.isValid(item.id)) {
-        dbProductId = item.id;
-      } else if (item.slug) {
-        const found = await Product.findOne({ slug: item.slug });
-        if (found) dbProductId = found._id;
-      }
-
-      const itemName = item.name || item.title || 'Equipment';
-      const variantSku = item.variantSku || item.sku || 'STD-SKU';
-      const variantTitle = item.variantTitle || item.selectedSize || 'Standard';
-      const image = item.image || item.webpImage || '';
-
-      orderItems.push({
-        product: dbProductId || undefined,
-        productId: String(item.productId || item.id || item.slug || ''),
-        variantSku,
-        name: itemName,
-        variantTitle,
-        image,
-        price,
-        quantity: qty,
-        subtotal: itemSubtotal,
-      });
-    }
-  } else {
-    const cart = await Cart.findOne({ user: req.user._id }).populate('items.product');
-    if (!cart || !cart.items || cart.items.length === 0) {
-      throw ApiError.badRequest('Your shopping cart is empty.');
+  for (const item of cart.items) {
+    const product = await Product.findById(item.product?._id || item.product);
+    if (!product || product.status !== PRODUCT_STATUS.ACTIVE) {
+      continue; // stale item — the cart already hides these from the customer
     }
 
-    for (const item of cart.items) {
-      const product = await Product.findById(item.product._id);
-      if (!product || product.status !== PRODUCT_STATUS.ACTIVE) {
-        throw ApiError.badRequest(`Product '${item.product.name}' is no longer available.`);
+    const variant = product.variants.find((v) => v.sku === item.variantSku && v.isActive);
+    if (!variant) {
+      continue; // stale variant SKU — the cart already hides these from the customer
+    }
+
+    const itemSubtotal = variant.price * item.quantity;
+    subtotal += itemSubtotal;
+
+    orderItems.push({
+      product: product._id,
+      productId: String(product._id),
+      variantSku: variant.sku,
+      name: product.name,
+      variantTitle: variant.title,
+      image: product.images.find((i) => i.isPrimary)?.url || product.images[0]?.url || '',
+      price: variant.price,
+      quantity: item.quantity,
+      subtotal: itemSubtotal,
+    });
+  }
+
+  // Nothing valid left to buy? Fail clearly instead of creating an empty order.
+  if (orderItems.length === 0) {
+    throw ApiError.badRequest('Your cart has no available items. Please add products again.');
+  }
+
+  // Coupon discount — re-validated server-side against the cart's applied coupon
+  let discount = 0;
+  let appliedCoupon = null;
+  if (cart.appliedCoupon && cart.appliedCoupon.code) {
+    const coupon = await Coupon.findOne({ code: cart.appliedCoupon.code, isActive: true });
+    if (coupon) {
+      const validation = coupon.isValid(subtotal, cart.user);
+      if (validation.valid) {
+        if (coupon.discountType === 'percentage') {
+          discount = (subtotal * coupon.discountValue) / 100;
+          if (coupon.maxDiscountAmount && discount > coupon.maxDiscountAmount) {
+            discount = coupon.maxDiscountAmount;
+          }
+        } else {
+          discount = coupon.discountValue;
+        }
+        discount = Math.min(discount, subtotal);
+        appliedCoupon = { code: coupon.code, discountAmount: Math.round(discount) };
       }
-
-      const variant = product.variants.find((v) => v.sku === item.variantSku && v.isActive);
-      if (!variant) {
-        throw ApiError.badRequest(`Variant SKU '${item.variantSku}' is no longer available.`);
-      }
-
-      const itemSubtotal = variant.price * item.quantity;
-      subtotal += itemSubtotal;
-
-      orderItems.push({
-        product: product._id,
-        productId: String(product._id),
-        variantSku: variant.sku,
-        name: product.name,
-        variantTitle: variant.title,
-        image: product.images.find((i) => i.isPrimary)?.url || product.images[0]?.url || '',
-        price: variant.price,
-        quantity: item.quantity,
-        subtotal: itemSubtotal,
-      });
     }
   }
 
-  // Calculate discount & shipping
-  const discount = Number(
-    req.body.pricing?.discountAmount ??
-    req.body.pricing?.discount ??
-    req.body.discountAmount ??
-    req.body.discount ??
-    0
-  );
-  const explicitShipping = req.body.pricing?.shippingFee ?? req.body.shippingFee;
-  const shippingFee = Number(
-    explicitShipping !== undefined
-      ? explicitShipping
-      : (subtotal >= 999 ? 0 : 99)
-  );
-  const baseTotalPayable = req.body.pricing?.totalPayable !== undefined
-    ? Number(req.body.pricing.totalPayable)
-    : Math.max(0, subtotal - discount + shippingFee);
+  // Shipping: free over ₹999, otherwise ₹99
+  const shippingFee = subtotal >= 999 || subtotal === 0 ? 0 : 99;
+
   const handlingFee = ORDER_HANDLING_FEE;
   const codSurcharge = isCod ? COD_SURCHARGE : 0;
-  const totalPayable = baseTotalPayable + codSurcharge + handlingFee;
+  const totalPayable = Math.max(0, subtotal - discount + shippingFee) + codSurcharge + handlingFee;
 
   const orderNumber = generateOrderNumber();
   const orderStatus = isCod ? ORDER_STATUS.PROCESSING : ORDER_STATUS.PENDING_PAYMENT;
@@ -191,7 +172,7 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
         timestamp: new Date(),
       },
     ],
-    appliedCoupon: req.body.appliedCoupon || null,
+    appliedCoupon,
   });
 
   // Delete authenticated user's MongoDB cart completely after order placement
@@ -334,6 +315,6 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
     await order.save();
 
-    return ApiResponse.badRequest('Payment verification failed.');
+    throw ApiError.badRequest('Payment verification failed.');
   }
 });
