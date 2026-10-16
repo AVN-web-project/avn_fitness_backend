@@ -1,0 +1,115 @@
+[{
+  "_id": {
+    "$oid": "6aa4df5fe3f671030b705b82"
+  },
+  "name": "Product & Inventory Manager",
+  "email": "product.manager@avnfitness.com",
+  "password": "$2b$10$4f1LlBu0BvaNhWxiC.U8Tuew6hVsZ6Putx/2g9GO4VAB1mgQv9Qiy",
+  "role": "product_inventory_manager",
+  "permissions": [],
+  "phone": "+919876543213",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-12T05:13:03.181Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T12:39:00.204Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-14T14:51:04.074Z"
+  },
+  "employeeId": "AVN-STF-00002"
+},
+{
+  "_id": {
+    "$oid": "6aa4df5fe3f671030b705b85"
+  },
+  "name": "Order & Logistics Manager",
+  "email": "order.manager@avnfitness.com",
+  "password": "$2b$10$zif0ZbAWfbNehp0UQRHr2.hG9Vf07.B7ldMFiZHuuq0lqf878bSX6",
+  "role": "order_manager",
+  "permissions": [],
+  "phone": "+919876543214",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-12T05:13:03.345Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T12:39:00.209Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-14T15:14:10.794Z"
+  },
+  "employeeId": "AVN-STF-00003"
+},
+{
+  "_id": {
+    "$oid": "6aa4df5fe3f671030b705b88"
+  },
+  "name": "Customer Support Lead",
+  "email": "support@avnfitness.com",
+  "password": "$2b$10$zUDz5C/sZUPalyf56RydUO0/4s1oxuujXz1D9wVIk/kWiP92AIuRS",
+  "role": "customer_support",
+  "permissions": [],
+  "phone": "+919876543215",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-12T05:13:03.508Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T12:39:00.212Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-12T13:35:46.329Z"
+  },
+  "employeeId": "AVN-STF-00004"
+},
+{
+  "_id": {
+    "$oid": "6aa4df5fe3f671030b705b8b"
+  },
+  "name": "Marketing & Campaigns Lead",
+  "email": "marketing@avnfitness.com",
+  "password": "$2b$10$hnrsFDdx3ExRe1h.IH0FWu8/A8PDWtmarQX5cTN8MBa6p5HmCqML2",
+  "role": "marketing_manager",
+  "permissions": [],
+  "phone": "+919876543216",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-12T05:13:03.671Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T12:39:00.216Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-12T13:35:46.514Z"
+  },
+  "employeeId": "AVN-STF-00005"
+},
+{
+  "_id": {
+    "$oid": "6aa4df5fe3f671030b705b8e"
+  },
+  "name": "Finance & Payouts Lead",
+  "email": "finance@avnfitness.com",
+  "password": "$2b$10$B7/ogNRtT2Oj9ivfkhv5d.S1TypRwCgYnnGp8diFKLLpr7ZEXp636",
+  "role": "finance_manager",
+  "permissions": [],
+  "phone": "+919876543217",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-09-12T05:13:03.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-25T12:39:00.220Z"
+  },
+  "__v": 0,
+  "lastLoginAt": {
+    "$date": "2026-09-16T16:05:38.884Z"
+  },
+  "employeeId": "AVN-STF-00006"
+}]

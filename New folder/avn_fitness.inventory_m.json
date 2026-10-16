@@ -1,0 +1,366 @@
+[{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b372"
+  },
+  "sku": "AVN-KW-79-RED",
+  "__v": 0,
+  "color": "Crimson Red",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.855Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-07T07:30:57.131Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 899,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437748"
+  },
+  "productName": "KNEE WRAP",
+  "size": "Standard 79\"",
+  "stockQuantity": 16,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.855Z"
+  },
+  "variantTitle": "Crimson Red - Standard 79\""
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b373"
+  },
+  "sku": "AVN-KW-79-BLK",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.911Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-07T07:30:57.131Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 999,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437748"
+  },
+  "productName": "KNEE WRAP",
+  "size": "XL Heavy 90\"",
+  "stockQuantity": 12,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.911Z"
+  },
+  "variantTitle": "Stealth Black - XL Heavy 90\""
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b374"
+  },
+  "sku": "AVN-EW-01-RED-M",
+  "__v": 0,
+  "color": "Crimson Red",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.918Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T10:10:03.312Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 699,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437754"
+  },
+  "productName": "ELBOW WRAP",
+  "size": "Medium",
+  "stockQuantity": 16,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.918Z"
+  },
+  "variantTitle": "Crimson Red - Medium"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b375"
+  },
+  "sku": "AVN-EW-01-BLK-L",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.926Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T10:10:03.312Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 749,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437754"
+  },
+  "productName": "ELBOW WRAP",
+  "size": "Large",
+  "stockQuantity": 14,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.926Z"
+  },
+  "variantTitle": "Stealth Black - Large"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b376"
+  },
+  "sku": "AVN-WW-18-RED",
+  "__v": 0,
+  "color": "Crimson Red",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.933Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:48.150Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 499,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d5343775e"
+  },
+  "productName": "WRIST WRAP",
+  "size": "18 Inch",
+  "stockQuantity": 25,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.933Z"
+  },
+  "variantTitle": "Crimson Red - 18\""
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b377"
+  },
+  "sku": "AVN-WW-24-BLK",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.938Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:48.150Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 549,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d5343775e"
+  },
+  "productName": "WRIST WRAP",
+  "size": "24 Inch",
+  "stockQuantity": 20,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.938Z"
+  },
+  "variantTitle": "Stealth Black - 24\""
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b378"
+  },
+  "sku": "AVN-LS-01-BLK",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.944Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T10:10:03.296Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 599,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437767"
+  },
+  "productName": "LIFTING STRAPS",
+  "size": "Standard",
+  "stockQuantity": 29,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.944Z"
+  },
+  "variantTitle": "Stealth Black / One Size"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b379"
+  },
+  "sku": "AVN-YB-08-NAT",
+  "__v": 0,
+  "color": "Natural Canvas",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.959Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:48.745Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 399,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d5343776f"
+  },
+  "productName": "YOGA BELT",
+  "size": "8ft Standard",
+  "stockQuantity": 40,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.959Z"
+  },
+  "variantTitle": "Natural Canvas / 8ft"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b37a"
+  },
+  "sku": "AVN-LB-10-M",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.964Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:48.946Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 3499,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437777"
+  },
+  "productName": "LEVER WEIGHTLIFTING BELT",
+  "size": "Medium (30\"-34\")",
+  "stockQuantity": 8,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.964Z"
+  },
+  "variantTitle": "Medium (30\"-34\") / Stealth Black"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b37b"
+  },
+  "sku": "AVN-LB-10-L",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.969Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:48.946Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 3499,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437777"
+  },
+  "productName": "LEVER WEIGHTLIFTING BELT",
+  "size": "Large (34\"-38\")",
+  "stockQuantity": 10,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.969Z"
+  },
+  "variantTitle": "Large (34\"-38\") / Stealth Black"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b37c"
+  },
+  "sku": "AVN-AS-04-M",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.974Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-21T13:53:09.405Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 449,
+  "product": {
+    "$oid": "6aa4f76aea87cd7da3303ed3"
+  },
+  "productName": "ANKLE COMPRESSION SLEEVE",
+  "size": "Medium",
+  "stockQuantity": 50,
+  "updatedAt": {
+    "$date": "2026-09-21T13:53:09.407Z"
+  },
+  "variantTitle": "Medium (Men 7-9 / Women 8-10)",
+  "isAvailable": true
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b37d"
+  },
+  "sku": "AVN-AS-04-L",
+  "__v": 0,
+  "color": "Stealth Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.978Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-06T06:57:49.159Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 449,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437780"
+  },
+  "productName": "ANKLE COMPRESSION SLEEVE",
+  "size": "Large",
+  "stockQuantity": 15,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.978Z"
+  },
+  "variantTitle": "Large (Men 10-12 / Women 11-13)"
+},
+{
+  "_id": {
+    "$oid": "6aa4f128488f526ee604b37e"
+  },
+  "sku": "AVN-LEGACY-00-STD",
+  "__v": 0,
+  "color": "Black",
+  "createdAt": {
+    "$date": "2026-09-12T06:28:56.984Z"
+  },
+  "lastRestockedAt": {
+    "$date": "2026-09-05T11:16:30.215Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 299,
+  "product": {
+    "$oid": "6a9bfa0e23cfcf3d53437788"
+  },
+  "productName": "LEGACY POWER WRAPS (DISCONTINUED)",
+  "size": "Standard",
+  "stockQuantity": 0,
+  "updatedAt": {
+    "$date": "2026-09-12T06:28:56.984Z"
+  },
+  "variantTitle": "Standard (Archived)"
+},
+{
+  "_id": {
+    "$oid": "6ab134490e7522ab9f2d3d3e"
+  },
+  "sku": "LEG-4249",
+  "__v": 0,
+  "color": "Standard",
+  "createdAt": {
+    "$date": "2026-09-21T13:42:33.179Z"
+  },
+  "isAvailable": true,
+  "lastRestockedAt": {
+    "$date": "2026-09-21T13:42:33.176Z"
+  },
+  "lowStockThreshold": 5,
+  "price": 299,
+  "product": {
+    "$oid": "6aa4f76aea87cd7da3303edb"
+  },
+  "productName": "LEGACY POWER WRAPS (DISCONTINUED)",
+  "size": "Standard",
+  "stockQuantity": 50,
+  "updatedAt": {
+    "$date": "2026-09-21T13:42:33.179Z"
+  },
+  "variantTitle": "Standard"
+}]
