@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ALL_ROLES, ROLES } from '../config/constants.js';
@@ -68,6 +69,14 @@ const userSchema = new mongoose.Schema(
     lastLoginAt: {
       type: Date,
     },
+    passwordResetToken: {
+      type: String,
+      select: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,
@@ -88,6 +97,15 @@ userSchema.pre('save', async function (next) {
 userSchema.methods.comparePassword = async function (candidatePassword) {
   if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Issue a single-use password-reset token. The raw token goes in the email;
+// only its SHA-256 hash is stored, so a leaked database can't be replayed.
+userSchema.methods.createPasswordResetToken = function () {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+  this.passwordResetExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+  return rawToken;
 };
 
 // Generate JWT Auth Token

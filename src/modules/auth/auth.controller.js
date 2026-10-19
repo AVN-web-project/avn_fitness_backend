@@ -5,7 +5,7 @@ import { User } from '../../models/user.model.js';
 import { Staff } from '../../models/staff.model.js';
 import { Admin } from '../../models/admin.model.js';
 import { Otp } from '../../models/otp.model.js';
-import { sendOtpEmail } from '../../utils/email.service.js';
+import { sendOtpEmail, sendPasswordResetEmail } from '../../utils/email.service.js';
 import { ApiError } from '../../utils/apiError.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -340,4 +340,120 @@ export const setPassword = asyncHandler(async (req, res) => {
   delete accountObj.password;
 
   return ApiResponse.success(res, { user: accountObj }, 'Password set successfully');
+});
+
+// ---------------------------------------------------------------------------
+// Password recovery
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /auth/forgot-password
+ * Always responds 200 so the endpoint can't be used to enumerate accounts.
+ * `portal` picks the account pool and the portal the reset link points at:
+ * 'storefront' (default) targets customers; 'admin' targets staff/admin accounts.
+ */
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email, portal = 'storefront' } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
+  const isAdminPortal = portal === 'admin';
+
+  const account = isAdminPortal
+    ? (await Staff.findOne({ email: normalizedEmail })) || (await Admin.findOne({ email: normalizedEmail }))
+    : await User.findOne({ email: normalizedEmail });
+
+  if (account) {
+    const rawToken = account.createPasswordResetToken();
+    await account.save({ validateBeforeSave: false });
+
+    // The admin portal is a react-router app, so its link targets the /reset-password
+    // route; the storefront reads the token from its root URL instead.
+    const base = isAdminPortal ? env.ADMIN_CLIENT_URL : env.CLIENT_URL;
+    const path = isAdminPortal ? '/reset-password' : '/';
+    const resetUrl = `${base}${path}?resetToken=${rawToken}&email=${encodeURIComponent(account.email)}`;
+
+    try {
+      await sendPasswordResetEmail({ to: account.email, name: account.name, resetUrl });
+    } catch (error) {
+      console.error('Password reset email failed:', error);
+      account.passwordResetToken = undefined;
+      account.passwordResetExpires = undefined;
+      await account.save({ validateBeforeSave: false });
+      throw ApiError.badRequest('Could not send the reset email. Please try again.');
+    }
+  }
+
+  return ApiResponse.success(
+    res,
+    {},
+    'If an account exists for that email, a password reset link has been sent.',
+    200
+  );
+});
+
+/**
+ * POST /auth/reset-password
+ * Consumes the single-use token from the email and sets the new password.
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, token, password, portal = 'storefront' } = req.body;
+  const normalizedEmail = email.toLowerCase().trim();
+  const isAdminPortal = portal === 'admin';
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+  const query = {
+    email: normalizedEmail,
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  };
+  const selectFields = '+passwordResetToken +passwordResetExpires';
+
+  let account = null;
+  if (isAdminPortal) {
+    account = await Staff.findOne(query).select(selectFields);
+    if (!account) account = await Admin.findOne(query).select(selectFields);
+  } else {
+    account = await User.findOne(query).select(selectFields);
+  }
+
+  if (!account) {
+    throw ApiError.badRequest('That reset link is invalid or has expired. Please request a new one.');
+  }
+
+  account.password = password;
+  account.authProvider = 'local';
+  account.passwordResetToken = undefined;
+  account.passwordResetExpires = undefined;
+  await account.save();
+
+  const accountObj = account.toObject();
+  delete accountObj.password;
+
+  return ApiResponse.success(res, { user: accountObj }, 'Password reset successfully. You can now sign in.');
+});
+/**
+ * POST /auth/change-password  (authenticated)
+ * Requires the current password, so a hijacked session can't lock the owner out.
+ */
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  let account = await Admin.findById(req.user._id).select('+password');
+  if (!account) account = await Staff.findById(req.user._id).select('+password');
+  if (!account) account = await User.findById(req.user._id).select('+password');
+
+  if (!account) throw ApiError.notFound('Account not found');
+
+  const isMatch = await account.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw ApiError.badRequest('Your current password is incorrect.');
+  }
+
+  account.password = newPassword;
+  account.authProvider = 'local';
+  await account.save();
+
+  const accountObj = account.toObject();
+  delete accountObj.password;
+
+  return ApiResponse.success(res, { user: accountObj }, 'Password changed successfully.');
 });

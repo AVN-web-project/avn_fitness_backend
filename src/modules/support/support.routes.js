@@ -2,7 +2,6 @@ import { Router } from 'express';
 import {
   chatAutoReply,
   createTicket,
-  createTicketOnBehalf,
   getMyTickets,
   getOperationsTickets,
   getTicketDetails,
@@ -27,7 +26,6 @@ router.post('/:id/reply', replyToTicket);
 
 // Support queue
 router.get('/operations/queue', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), getOperationsTickets);
-router.post('/operations/tickets', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), createTicketOnBehalf);
 router.patch('/operations/:id/status', requireRole(ROLES.SUPER_ADMIN, ROLES.CUSTOMER_SUPPORT), updateTicketStatus);
 
 export default router;

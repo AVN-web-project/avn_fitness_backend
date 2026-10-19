@@ -3,7 +3,7 @@ import { Product } from '../../models/product.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
-import { ORDER_STATUS, ROLES } from '../../config/constants.js';
+import { ORDER_STATUS, ROLES, PAYMENT_STATUS } from '../../config/constants.js';
 import { sendOrderCancellationEmail } from '../../utils/email.service.js';
 
 export const getMyOrders = asyncHandler(async (req, res) => {
@@ -103,13 +103,19 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
     note: `Order cancelled by customer. Reason: ${trimmedReason}`,
   });
 
-  // Restock inventory
-  for (const item of order.items) {
-    if (item.product) {
-      await Product.updateOne(
-        { _id: item.product, 'variants.sku': item.variantSku },
-        { $inc: { 'variants.$.stockQuantity': item.quantity } }
-      );
+  // Restock only what was actually taken. Stock is deducted in verifyPayment, so an
+  // order that never reached it has nothing to give back — restocking it inflates
+  // inventory. Also correct for COD: a COD order is created straight into processing,
+  // never passes through verifyPayment, and so never deducted stock either.
+  const wasStockDeducted = order.paymentInfo?.paymentStatus === PAYMENT_STATUS.CAPTURED;
+  if (wasStockDeducted) {
+    for (const item of order.items) {
+      if (item.product) {
+        await Product.updateOne(
+          { _id: item.product, 'variants.sku': item.variantSku },
+          { $inc: { 'variants.$.stockQuantity': item.quantity } }
+        );
+      }
     }
   }
 
@@ -214,7 +220,19 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
         Number(order.pricing.codSurcharge || 0) -
         Number(order.pricing.handlingFee || 0)
     ),
-    refundAccountDetails: normalizedRefundAccountDetails,
+    // MUST match the model's returnRequest.refundAccount field names. Writing
+    // 'refundAccountDetails' instead meant Mongoose strict mode silently dropped
+    // the payout destination, so COD refunds had nowhere to be paid out.
+    refundAccount: isCod && normalizedRefundAccountDetails
+      ? {
+          method: normalizedRefundAccountDetails.method,
+          upiId: normalizedRefundAccountDetails.upiId || '',
+          holderName: normalizedRefundAccountDetails.accountHolderName || '',
+          accountNumber: normalizedRefundAccountDetails.accountNumber || '',
+          ifsc: normalizedRefundAccountDetails.ifscCode || '',
+          providedAt: new Date(),
+        }
+      : undefined,
     reviewNotes: '',
   };
 

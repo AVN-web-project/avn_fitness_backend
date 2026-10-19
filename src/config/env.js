@@ -11,6 +11,7 @@ export const env = Object.freeze({
   PORT: parseInt(process.env.PORT || '5000', 10),
   API_PREFIX: process.env.API_PREFIX || '/api/v1',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
+  ADMIN_CLIENT_URL: process.env.ADMIN_CLIENT_URL || 'http://localhost:5174',
   MONGODB_URI: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/avn_fitness',
   
   JWT: {

@@ -40,6 +40,19 @@ export const ALLOWED_ORDER_TRANSITIONS = {
 };
 
 /**
+ * States the super-admin override may leave.
+ *
+ * The override exists so a super-admin can skip FORWARD fulfillment steps — it must
+ * never drag an order backwards out of a post-fulfillment state. Without this a
+ * returned order could be pushed back to 'delivered', or a refunded one reopened.
+ */
+const OVERRIDABLE_FROM = [
+  ORDER_STATUS.PENDING_PAYMENT,
+  ORDER_STATUS.PAID_CONFIRMED,
+  ORDER_STATUS.PROCESSING,
+];
+
+/**
  * Validate order state transition
  */
 export const validateOrderTransition = (currentState, nextState, allowAdminOverride = false) => {
@@ -47,7 +60,7 @@ export const validateOrderTransition = (currentState, nextState, allowAdminOverr
     return true;
   }
 
-  if (allowAdminOverride) {
+  if (allowAdminOverride && OVERRIDABLE_FROM.includes(currentState)) {
     return true;
   }
 

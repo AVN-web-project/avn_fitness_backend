@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import {
   addAddress,
+  changePassword,
   deleteAddress,
+  forgotPassword,
   getProfile,
   login,
   logout,
   register,
+  resetPassword,
   sendOtp,
   setPassword,
   updateAddress,
@@ -17,8 +20,11 @@ import { authLimiter } from '../../middlewares/rateLimiter.middleware.js';
 import { validate } from '../../middlewares/validate.middleware.js';
 import {
   addressSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
   loginSchema,
   registerSchema,
+  resetPasswordSchema,
   sendOtpSchema,
   setPasswordSchema,
   verifyOtpSchema,
@@ -31,12 +37,15 @@ router.post('/register', authLimiter, validate(registerSchema), register);
 router.post('/login', authLimiter, validate(loginSchema), login);
 router.post('/otp/send', authLimiter, validate(sendOtpSchema), sendOtp);
 router.post('/otp/verify', authLimiter, validate(verifyOtpSchema), verifyOtp);
+router.post('/forgot-password', authLimiter, validate(forgotPasswordSchema), forgotPassword);
+router.post('/reset-password', authLimiter, validate(resetPasswordSchema), resetPassword);
 router.post('/logout', logout);
 
 // Authenticated user endpoints
 router.get('/profile', requireAuth, getProfile);
 router.patch('/profile', requireAuth, updateProfile);
 router.post('/set-password', requireAuth, validate(setPasswordSchema), setPassword);
+router.post('/change-password', requireAuth, validate(changePasswordSchema), changePassword);
 
 // Address management
 router.post('/addresses', requireAuth, validate(addressSchema), addAddress);

@@ -624,3 +624,235 @@ export async function sendRefundConfirmationEmail(email, order) {
 
   return { success: true, method: 'console' };
 }
+
+/**
+ * Password-reset email — a single-use link the customer clicks to set a new password.
+ */
+export const sendPasswordResetEmail = async ({ to, name, resetUrl, expiresMinutes = 30 }) => {
+  const safeName = name || 'there';
+
+  const attachments = [];
+  const thumbDir = path.resolve(__dirname, '../assets/thumbnails');
+  const logoPath = path.join(thumbDir, 'avn-logo.png');
+  const hasLogoAttachment = fs.existsSync(logoPath);
+  if (hasLogoAttachment) {
+    attachments.push({ filename: 'avn-logo.png', path: logoPath, cid: 'avn_brand_logo' });
+  }
+
+  const bodyHtml = `
+    <div style="padding:20px 24px 10px 24px;">
+      <p style="color:#c9c9d4;font-size:14px;line-height:1.6;margin:0 0 14px 0;">
+        Hi ${safeName}, we received a request to reset your AVN Athletics password.
+        Click the button below to choose a new one.
+      </p>
+      <div style="text-align:center;margin:22px 0;">
+        <a href="${resetUrl}" style="display:inline-block;background-color:#FF1E27;color:#ffffff;text-decoration:none;font-weight:900;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;padding:14px 28px;border-radius:12px;">Reset My Password</a>
+      </div>
+      <p style="color:#888894;font-size:12px;line-height:1.6;margin:0 0 8px 0;">
+        This link expires in ${expiresMinutes} minutes and can be used once.
+      </p>
+      <p style="color:#888894;font-size:12px;line-height:1.6;margin:0;">
+        If you didn't request this, you can safely ignore this email - your password will not change.
+      </p>
+    </div>`;
+
+  const html = buildBrandShell({
+    badgeText: 'Password Reset',
+    badgeTone: 'red',
+    heading: 'Reset Your Password',
+    intro: 'Use the button below to set a new password for your AVN Athletics account.',
+    bodyHtml,
+    hasLogo: hasLogoAttachment,
+  });
+
+  try {
+    const transporter = await getTransporter();
+    if (transporter) {
+      await transporter.sendMail({
+        from: `"AVN Athletics" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        to,
+        subject: 'Reset your AVN Athletics password',
+        attachments,
+        html,
+      });
+      console.log(`[AVN Athletics] Password reset email dispatched to ${to}`);
+      return { success: true, method: 'smtp' };
+    }
+  } catch (error) {
+    console.warn('Password reset email SMTP dispatch fallback:', error.message);
+  }
+
+  return { success: true, method: 'console' };
+};
+
+/**
+ * Staff welcome email — the sign-in credentials plus a single-use link to set a
+ * password of their own. Sent when a super-admin creates a staff account.
+ */
+export const sendStaffWelcomeEmail = async ({ to, name, email, password, role, loginUrl, setPasswordUrl }) => {
+  const attachments = [];
+  const thumbDir = path.resolve(__dirname, '../assets/thumbnails');
+  const logoPath = path.join(thumbDir, 'avn-logo.png');
+  const hasLogoAttachment = fs.existsSync(logoPath);
+  if (hasLogoAttachment) {
+    attachments.push({ filename: 'avn-logo.png', path: logoPath, cid: 'avn_brand_logo' });
+  }
+
+  const row = (label, value) => `
+    <tr>
+      <td style="color:#888894;padding:6px 0;">${label}</td>
+      <td style="color:#ffffff;padding:6px 0;text-align:right;font-weight:700;font-family:monospace;">${value}</td>
+    </tr>`;
+
+  const bodyHtml = `
+    <div style="padding:20px 24px 10px 24px;">
+      <p style="color:#c9c9d4;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
+        Hi ${name || 'there'}, an AVN Management Portal account has been created for you.
+        Here are your sign-in details.
+      </p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background-color:#0f1018;border:1px solid #22232e;border-radius:12px;">
+        <tr><td style="padding:14px 16px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">
+            ${row('Email', email)}
+            ${row('Temporary password', password)}
+            ${row('Role', role)}
+          </table>
+        </td></tr>
+      </table>
+      <div style="text-align:center;margin:22px 0 10px 0;">
+        <a href="${loginUrl}" style="display:inline-block;background-color:#2563EB;color:#ffffff;text-decoration:none;font-weight:900;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;padding:14px 28px;border-radius:12px;">Sign In to the Portal</a>
+      </div>
+      <div style="text-align:center;margin:10px 0 18px 0;">
+        <a href="${setPasswordUrl}" style="display:inline-block;color:#FF1E27;border:1px solid #FF1E27;text-decoration:none;font-weight:800;font-size:13px;letter-spacing:0.4px;text-transform:uppercase;padding:12px 24px;border-radius:12px;">Change My Password</a>
+      </div>
+      <p style="color:#888894;font-size:12px;line-height:1.6;margin:0;">
+        For your security, please replace the temporary password using the button above.
+        That link is single-use and expires in 30 minutes.
+      </p>
+    </div>`;
+
+  const html = buildBrandShell({
+    badgeText: 'Welcome Aboard',
+    badgeTone: 'green',
+    heading: 'Your Staff Account Is Ready',
+    intro: 'Sign in to the AVN Management Portal with the credentials below.',
+    bodyHtml,
+    hasLogo: hasLogoAttachment,
+  });
+
+  try {
+    const transporter = await getTransporter();
+    if (transporter) {
+      await transporter.sendMail({
+        from: `"AVN Athletics" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        to,
+        subject: 'Your AVN Management Portal credentials',
+        attachments,
+        html,
+      });
+      console.log(`[AVN Athletics] Staff welcome email dispatched to ${to}`);
+      return { success: true, method: 'smtp' };
+    }
+  } catch (error) {
+    console.warn('Staff welcome email SMTP dispatch fallback:', error.message);
+  }
+
+  return { success: true, method: 'console' };
+};
+
+// ---------------------------------------------------------------------------
+// Return request decision (approved / rejected)
+// ---------------------------------------------------------------------------
+export async function sendReturnStatusEmail(email, order) {
+  const orderNumber = order?.orderNumber || order?._id || 'ORD-UNKNOWN';
+  const rr = order?.returnRequest || {};
+  const items = Array.isArray(order?.items) ? order.items : [];
+  const approved = rr.status === 'approved';
+  const refundAmount = Number(rr.refundAmount) || 0;
+  const isCod = String(order?.paymentInfo?.provider || '').toLowerCase() === 'cod';
+
+  const attachments = [];
+  const thumbDir = path.resolve(__dirname, '../assets/thumbnails');
+  const logoPath = path.join(thumbDir, 'avn-logo.png');
+  const hasLogoAttachment = fs.existsSync(logoPath);
+  if (hasLogoAttachment) {
+    attachments.push({ filename: 'avn-logo.png', path: logoPath, cid: 'avn_brand_logo' });
+  }
+
+  const block = buildOrderItemsBlock(items, 'return_thumb');
+  attachments.push(...block.attachments);
+
+  const decisionNotice = approved
+    ? `A refund of <strong style="color:#ffffff;">${inrFormat(refundAmount)}</strong> has been approved. ${
+        isCod
+          ? 'It will be paid out to the UPI / bank details you provided with your request.'
+          : 'It will be processed back to your original payment method.'
+      } We will email you again once the refund has been recorded.`
+    : `Your return request was declined, so no refund will be issued for this order.${
+        rr.reviewNotes ? ` Reviewer note: <strong style="color:#ffffff;">${rr.reviewNotes}</strong>` : ''
+      }`;
+
+  const bodyHtml = `
+    <div style="padding:24px;">
+      <div style="background-color:#171822;border:1px solid #252634;border-radius:12px;padding:18px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;font-size:13px;">
+          <tr>
+            <td style="color:#888894;padding:5px 0;">Order ID</td>
+            <td style="color:#ffffff;padding:5px 0;text-align:right;font-family:monospace;font-weight:700;">${orderNumber}</td>
+          </tr>
+          <tr>
+            <td style="color:#888894;padding:5px 0;">Decision</td>
+            <td style="color:${approved ? '#10B981' : '#FF1E27'};padding:5px 0;text-align:right;font-weight:800;text-transform:uppercase;">${approved ? 'Approved' : 'Declined'}</td>
+          </tr>
+          ${rr.reviewedAt ? `<tr><td style="color:#888894;padding:5px 0;">Reviewed On</td><td style="color:#ffffff;padding:5px 0;text-align:right;font-weight:700;">${mailDate(rr.reviewedAt)}</td></tr>` : ''}
+          ${rr.reason ? `<tr><td style="color:#888894;padding:5px 0;">Your Reason</td><td style="color:#ffffff;padding:5px 0;text-align:right;font-weight:700;">${rr.reason}</td></tr>` : ''}
+        </table>
+      </div>
+    </div>
+
+    <div style="padding:0 24px;">
+      <div style="padding:14px 16px;background-color:${approved ? 'rgba(16,185,129,0.08)' : 'rgba(255,30,39,0.08)'};border:1px solid ${approved ? 'rgba(16,185,129,0.3)' : 'rgba(255,30,39,0.3)'};border-radius:12px;font-size:12px;color:#d1d5db;line-height:1.5;">
+        ${decisionNotice}
+      </div>
+    </div>
+
+    <div style="padding:20px 24px 10px 24px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-bottom:12px;border-bottom:1px solid #22232e;padding-bottom:8px;">
+        <tr>
+          <td style="color:#ffffff;font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;">Returned Items</td>
+          <td style="text-align:right;color:#888894;font-size:11px;font-weight:700;">${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}</td>
+        </tr>
+      </table>
+      ${block.itemsHtml}
+    </div>`;
+
+  const html = buildBrandShell({
+    badgeText: approved ? 'Return Approved' : 'Return Declined',
+    badgeTone: approved ? 'green' : 'red',
+    heading: approved ? 'Your Return Has Been Approved' : 'Your Return Request Was Declined',
+    intro: approved
+      ? `Good news — the return for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been approved.`
+      : `We reviewed the return for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> and could not approve it.`,
+    bodyHtml,
+    hasLogo: hasLogoAttachment,
+  });
+
+  try {
+    const transporter = await getTransporter();
+    if (transporter) {
+      await transporter.sendMail({
+        from: `"AVN Athletics" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Return ${approved ? 'Approved' : 'Declined'}: ${orderNumber} | AVN Athletics`,
+        attachments,
+        html,
+      });
+      console.log(`[AVN Athletics] Return status email dispatched to ${email}`);
+      return { success: true, method: 'smtp' };
+    }
+  } catch (error) {
+    console.warn('Return status email SMTP dispatch fallback:', error.message);
+  }
+
+  return { success: true, method: 'console' };
+}

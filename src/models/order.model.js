@@ -155,12 +155,16 @@ const orderSchema = new mongoose.Schema(
       reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       reviewedAt: { type: Date },
       refundAmount: { type: Number, default: 0 },
-      refundAccountDetails: {
-        method: { type: String, enum: ['upi', 'bank'] },
-        upiId: { type: String, trim: true, lowercase: true },
-        accountHolderName: { type: String, trim: true },
-        accountNumber: { type: String, trim: true },
-        ifscCode: { type: String, trim: true, uppercase: true },
+      // Where the customer asked the refund to be paid out (mainly for COD returns,
+      // which are manual payouts instead of gateway reversals). Captured ONCE at
+      // return-request time — never stored on the user profile.
+      refundAccount: {
+        method: { type: String, enum: ['upi', 'bank'], default: 'upi' },
+        upiId: { type: String, trim: true, default: '' },
+        holderName: { type: String, trim: true, default: '' },
+        accountNumber: { type: String, trim: true, default: '' },
+        ifsc: { type: String, trim: true, uppercase: true, default: '' },
+        providedAt: { type: Date },
       },
       reviewNotes: { type: String, default: '' },
     },

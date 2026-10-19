@@ -77,56 +77,6 @@ export const createTicket = asyncHandler(async (req, res) => {
   return ApiResponse.success(res, { ticket }, 'Support inquiry submitted successfully', 201);
 });
 
-export const createTicketOnBehalf = asyncHandler(async (req, res) => {
-  const orderNumber = typeof req.body.orderNumber === 'string' ? req.body.orderNumber.trim().toUpperCase() : '';
-  const subject = typeof req.body.subject === 'string' ? req.body.subject.trim() : '';
-  const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
-  const category = typeof req.body.category === 'string' ? req.body.category.trim().toLowerCase() : 'order';
-
-  if (!orderNumber) throw ApiError.badRequest('Order number is required.');
-  if (subject.length < 3 || subject.length > 200) {
-    throw ApiError.badRequest('Subject must be between 3 and 200 characters.');
-  }
-  if (message.length < 5 || message.length > 5000) {
-    throw ApiError.badRequest('Message must be between 5 and 5000 characters.');
-  }
-  if (!['order', 'product', 'payment', 'shipping', 'return_refund', 'general'].includes(category)) {
-    throw ApiError.badRequest('Please select a valid support category.');
-  }
-
-  const order = await Order.findOne({ orderNumber }).populate('user', 'name email phone');
-  if (!order) throw ApiError.notFound('Order not found. Check the order number and try again.');
-  if (!order.user) throw ApiError.badRequest('This order is not linked to an active customer account.');
-
-  const ticket = await SupportRequest.create({
-    ticketNumber: generateTicketNumber(),
-    user: order.user._id,
-    order: order._id,
-    subject,
-    category,
-    initialMessage: message,
-    status: SUPPORT_STATUS.OPEN,
-  });
-
-  await recordActivityLog({
-    user: req.user,
-    action: ACTIVITY_ACTIONS.SUPPORT_REQUEST_CREATED,
-    targetEntity: ENTITY_TYPES.SUPPORT_REQUEST,
-    targetEntityId: ticket._id,
-    details: {
-      ticketNumber: ticket.ticketNumber,
-      orderNumber: order.orderNumber,
-      customerEmail: order.user.email,
-    },
-    ipAddress: req.ip,
-  });
-
-  await ticket.populate('user', 'name email phone');
-  await ticket.populate('order', 'orderNumber orderStatus');
-
-  return ApiResponse.success(res, { ticket }, 'Support ticket created for the order customer', 201);
-});
-
 export const getMyTickets = asyncHandler(async (req, res) => {
   const tickets = await SupportRequest.find({ user: req.user._id })
     .populate('order', 'orderNumber orderStatus')

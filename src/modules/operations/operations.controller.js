@@ -6,7 +6,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
-import { sendRefundConfirmationEmail } from '../../utils/email.service.js';
+import { sendRefundConfirmationEmail, sendReturnStatusEmail } from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import {
   ACTIVITY_ACTIONS,
@@ -183,6 +183,11 @@ export const confirmDelivery = asyncHandler(async (req, res) => {
   const order = await Order.findById(id);
   if (!order) throw ApiError.notFound('Order not found');
 
+  // Only a shipped order can be marked delivered. Without this guard any order —
+  // including a returned or cancelled one — could be pushed straight to 'delivered'.
+  const isSuperAdmin = req.user.role === ROLES.SUPER_ADMIN;
+  validateOrderTransition(order.orderStatus, ORDER_STATUS.DELIVERED, isSuperAdmin);
+
   order.orderStatus = ORDER_STATUS.DELIVERED;
   order.shipmentInfo.deliveredAt = new Date();
 
@@ -226,7 +231,7 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { action, notes, refundAmount } = req.body; // action: 'approve' | 'reject'
 
-  const order = await Order.findById(id);
+  const order = await Order.findById(id).populate('user', 'name email');
   if (!order) throw ApiError.notFound('Order not found');
 
   if (order.orderStatus !== ORDER_STATUS.RETURN_REQUESTED) {
@@ -292,6 +297,14 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
   }
 
   await order.save();
+
+  // Tell the customer the outcome. Until now the only email in this lifecycle was
+  // the refund confirmation, so a declined return was never communicated at all.
+  if (order.user?.email) {
+    sendReturnStatusEmail(order.user.email, order).catch((err) =>
+      console.warn('Return status email failed:', err.message)
+    );
+  }
 
   return ApiResponse.success(res, { order }, `Return request ${action}d successfully`);
 });

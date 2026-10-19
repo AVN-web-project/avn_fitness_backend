@@ -16,6 +16,15 @@ const slugify = (value) => String(value || '')
   .replace(/[^a-z0-9]+/g, '-')
   .replace(/^-+|-+$/g, '');
 
+/**
+ * Every variant must carry a SKU. The admin UI deliberately no longer fabricates
+ * them, so the backend is the single source of truth and fills any blank in.
+ */
+const makeVariantSku = (productName, index) => {
+  const prefix = String(productName || 'AVN').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase() || 'AVN';
+  return `${prefix}-${index + 1}-${Date.now().toString().slice(-4)}`;
+};
+
 export const getProducts = asyncHandler(async (req, res) => {
   const {
     category,
@@ -208,6 +217,12 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   ];
 
+  // Fill in any SKU the admin left blank — never store a variant without one.
+  normalizedVariants.forEach((v, i) => {
+    const sku = String(v?.sku || '').trim().toUpperCase();
+    v.sku = sku || makeVariantSku(name, i);
+  });
+
   const primaryPrice = normalizedVariants[0]?.price || Number(price) || 499;
 
   const product = await Product.create({
@@ -305,6 +320,14 @@ export const updateProduct = asyncHandler(async (req, res) => {
       product[field] = req.body[field];
     }
   });
+
+  // Same guarantee on update: no variant is ever saved without a SKU.
+  if (Array.isArray(product.variants)) {
+    product.variants.forEach((v, i) => {
+      const sku = String(v?.sku || '').trim().toUpperCase();
+      v.sku = sku || makeVariantSku(product.name, i);
+    });
+  }
 
   await product.save();
 

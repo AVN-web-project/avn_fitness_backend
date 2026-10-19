@@ -65,3 +65,26 @@ export const setPasswordSchema = z.object({
     password: z.string().min(6, 'Password must be at least 6 characters').max(100),
   }),
 });
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email address'),
+    portal: z.enum(['storefront', 'admin']).optional(),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    email: z.string().email('Invalid email address'),
+    token: z.string().min(10, 'Reset token is missing or invalid'),
+    password: z.string().min(6, 'Password must be at least 6 characters').max(100),
+    portal: z.enum(['storefront', 'admin']).optional(),
+  }),
+});
+
+export const changePasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().min(1, 'Please enter your current password'),
+    newPassword: z.string().min(6, 'Password must be at least 6 characters').max(100),
+  }),
+});

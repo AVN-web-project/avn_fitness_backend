@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ActivityLog } from '../../models/activityLog.model.js';
 import { Order } from '../../models/order.model.js';
@@ -8,6 +9,8 @@ import { ROLE_LOG_DOMAINS, ROLES, ORDER_STATUS, ACTIVITY_ACTIONS, ENTITY_TYPES, 
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
+import { sendStaffWelcomeEmail } from '../../utils/email.service.js';
+import { env } from '../../config/env.js';
 
 // Entity fallbacks for each domain
 const DOMAIN_TO_ENTITIES = {
@@ -344,6 +347,25 @@ export const createStaff = asyncHandler(async (req, res) => {
   const staffObj = newStaff.toObject();
   delete staffObj.password;
 
+  // Email the new staff member their credentials plus a single-use link to set
+  // their own password. A mail failure must not fail the account creation.
+  try {
+    const rawToken = newStaff.createPasswordResetToken();
+    await newStaff.save({ validateBeforeSave: false });
+
+    await sendStaffWelcomeEmail({
+      to: newStaff.email,
+      name: newStaff.name,
+      email: newStaff.email,
+      password,
+      role: newStaff.role,
+      loginUrl: `${env.ADMIN_CLIENT_URL}/login`,
+      setPasswordUrl: `${env.ADMIN_CLIENT_URL}/reset-password?resetToken=${rawToken}&email=${encodeURIComponent(newStaff.email)}`,
+    });
+  } catch (emailError) {
+    console.error('Staff welcome email failed:', emailError);
+  }
+
   // Audit Log for Staff Creation (Admin-only domain)
   await recordActivityLog({
     user: req.user || req.admin,
@@ -410,6 +432,21 @@ export const toggleStaffStatus = asyncHandler(async (req, res) => {
  * Tabulated Processed Payments with Filters & Analytics
  * GET /api/v1/admin/payments
  */
+// Mask a customer refund destination for API responses once the payout is settled,
+// so live systems hold the full account number only while a refund is genuinely pending.
+const maskRefundAccount = (acc) => {
+  if (!acc) return null;
+  const [user, domain] = String(acc.upiId || '').split('@');
+  return {
+    method: acc.method || 'upi',
+    upiId: acc.upiId ? `${user.slice(0, 2)}****@${domain || ''}` : '',
+    holderName: acc.holderName || '',
+    accountNumber: acc.accountNumber ? `****${acc.accountNumber.slice(-4)}` : '',
+    ifsc: acc.ifsc || '',
+    providedAt: acc.providedAt,
+  };
+};
+
 export const getPaymentsList = asyncHandler(async (req, res) => {
   const { search, status, provider, page = 1, limit = 20 } = req.query;
 
@@ -480,6 +517,15 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
       customerPhone: ord.shippingAddress?.phone || ord.user?.phone || 'N/A',
       transactionId: ord.paymentInfo?.transactionId || ord.paymentInfo?.paymentOrderId || `AVN-TXN-${ord.orderNumber}`,
       refundTransactionId: isRefunded ? (ord.paymentInfo?.refundTransactionId || null) : null,
+      // Refund destination the customer provided with their return request.
+      // Masked once the payout is settled (order refunded).
+      refundAccount:
+        ord.returnRequest?.refundAccount &&
+        (ord.returnRequest.refundAccount.upiId || ord.returnRequest.refundAccount.accountNumber)
+          ? (isRefunded
+              ? maskRefundAccount(ord.returnRequest.refundAccount)
+              : ord.returnRequest.refundAccount)
+          : null,
       paymentOrderId: ord.paymentInfo?.paymentOrderId || 'N/A',
       provider: ord.paymentInfo?.provider || 'razorpay',
       paymentType,
@@ -488,7 +534,6 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
       discount: ord.pricing?.discount || 0,
       tax: ord.pricing?.tax || 0,
       shippingFee: ord.pricing?.shippingFee || 0,
-      handlingFee: ord.pricing?.handlingFee || 0,
       paymentStatus: isRefunded ? 'refunded' : (ord.paymentInfo?.paymentStatus || (isSuccess ? 'captured' : 'pending')),
       orderStatus: ord.orderStatus,
       paidAt: ord.paymentInfo?.paidAt || ord.createdAt,
@@ -570,15 +615,21 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   if (filterType === 'return_requested') {
     query.orderStatus = ORDER_STATUS.RETURN_REQUESTED;
   } else if (filterType === 'pending_refund') {
-    // COD cancellations are unpaid, but delivered COD returns require a manual refund.
-    query.orderStatus = { $in: [ORDER_STATUS.RETURNED, ORDER_STATUS.CANCELLED] };
-    query['paymentInfo.paymentStatus'] = 'captured';
-    query.$and = [{
-      $or: [
-        { 'paymentInfo.provider': { $ne: 'cod' } },
-        { orderStatus: ORDER_STATUS.RETURNED },
-      ],
-    }];
+    // Refund-eligible: any returned order, or a cancelled order that took online money.
+    // This mirrors the Process Refund button's rule on the Finance page.
+    query.$and = [
+      ...(query.$and || []),
+      {
+        $or: [
+          { orderStatus: ORDER_STATUS.RETURNED },
+          {
+            orderStatus: ORDER_STATUS.CANCELLED,
+            'paymentInfo.paymentStatus': 'captured',
+            'paymentInfo.provider': { $ne: 'cod' },
+          },
+        ],
+      },
+    ];
   } else if (filterType === 'refunded') {
     query.orderStatus = ORDER_STATUS.REFUNDED;
   }
@@ -624,27 +675,46 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
   let totalRefundedAmount = 0;
 
   for (const o of allRelevant) {
+    const cancelledPaidOnline =
+      o.orderStatus === ORDER_STATUS.CANCELLED &&
+      o.paymentInfo?.paymentStatus === 'captured' &&
+      o.paymentInfo?.provider !== 'cod';
+
     if (o.orderStatus === ORDER_STATUS.RETURN_REQUESTED) {
       returnRequestedCount++;
-    } else if (
-      (o.orderStatus === ORDER_STATUS.RETURNED || o.orderStatus === ORDER_STATUS.CANCELLED) &&
-      (o.paymentInfo?.provider !== 'cod' || o.orderStatus === ORDER_STATUS.RETURNED) &&
-      o.paymentInfo?.paymentStatus === 'captured'
-    ) {
+    } else if (o.orderStatus === ORDER_STATUS.RETURNED || cancelledPaidOnline) {
       pendingRefundCount++;
     } else if (o.orderStatus === ORDER_STATUS.REFUNDED) {
       refundedCount++;
-      totalRefundedAmount += Number(o.returnRequest?.refundAmount) || Math.max(
-        0,
-        (Number(o.pricing?.totalPayable) || 0) - (o.paymentInfo?.provider === 'cod' ? Number(o.pricing?.codSurcharge || 0) : 0)
-      );
+      totalRefundedAmount += Number(o.pricing?.totalPayable) || 0;
     }
   }
+
+  // The customer's payout destination may only be exposed in full while the refund
+  // is still pending — the finance manager needs the real details to make the
+  // transfer. Once the order is refunded the payout is settled, so it is masked.
+  // Without this the returns list handed out the raw UPI / account number.
+  const requests = orders.map((o) => {
+    const raw = o.returnRequest?.refundAccount;
+    const hasDestination = Boolean(raw && (raw.upiId || raw.accountNumber));
+    const isSettled =
+      o.orderStatus === ORDER_STATUS.REFUNDED || o.paymentInfo?.paymentStatus === 'refunded';
+    const exposed = hasDestination ? (isSettled ? maskRefundAccount(raw) : raw) : null;
+
+    return {
+      ...o,
+      // Never leak the raw destination once the payout has settled
+      returnRequest: o.returnRequest
+        ? { ...o.returnRequest, refundAccount: exposed }
+        : o.returnRequest,
+      refundAccount: exposed,
+    };
+  });
 
   return ApiResponse.success(
     res,
     {
-      requests: orders,
+      requests,
       metrics: {
         returnRequestedCount,
         pendingRefundCount,
@@ -660,5 +730,54 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
       },
     },
     'Return and cancellation requests retrieved successfully'
+  );
+});
+
+/**
+ * GET /admin/users/:id
+ * Complete customer view for the admin drawer — profile, lifetime order stats
+ * and the most recent orders.
+ */
+export const getCustomerDetail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const customer = await User.findById(id).select('-password').lean();
+  if (!customer) throw ApiError.notFound('Customer not found');
+
+  // Cancelled orders still count as activity, but not as spend.
+  const [stats] = await Order.aggregate([
+    { $match: { user: new mongoose.Types.ObjectId(id) } },
+    {
+      $group: {
+        _id: null,
+        orderCount: { $sum: 1 },
+        lifetimeValue: {
+          $sum: {
+            $cond: [{ $ne: ['$orderStatus', ORDER_STATUS.CANCELLED] }, '$pricing.totalPayable', 0],
+          },
+        },
+        lastOrderAt: { $max: '$createdAt' },
+      },
+    },
+  ]);
+
+  const recentOrders = await Order.find({ user: id })
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .select('orderNumber orderStatus pricing.totalPayable items createdAt')
+    .lean();
+
+  return ApiResponse.success(
+    res,
+    {
+      customer,
+      stats: {
+        orderCount: stats?.orderCount || 0,
+        lifetimeValue: stats?.lifetimeValue || 0,
+        lastOrderAt: stats?.lastOrderAt || null,
+      },
+      orders: recentOrders,
+    },
+    'Customer detail retrieved'
   );
 });

@@ -3,6 +3,7 @@ import {
   getActivityLogs,
   getAdminAnalytics,
   getUsers,
+  getCustomerDetail,
   toggleUserStatus,
   getStaff,
   createStaff,
@@ -41,6 +42,12 @@ router.get(
   requireAuth,
   requireAnyPermission(['customers.view', 'orders.view', 'support.view']),
   getUsers
+);
+router.get(
+  '/users/:id',
+  requireAuth,
+  requireAnyPermission(['customers.view', 'orders.view', 'support.view']),
+  getCustomerDetail
 );
 router.patch(
   '/users/:id/toggle-status',
