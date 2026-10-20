@@ -6,6 +6,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
+import { getRefundableAmount } from '../../utils/refund.js';
 import { sendRefundConfirmationEmail, sendReturnStatusEmail } from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import {
@@ -16,15 +17,6 @@ import {
   ROLES,
   SHIPMENT_STATUS,
 } from '../../config/constants.js';
-
-const getRefundableAmount = (order) => {
-  const totalPayable = Number(order.pricing?.totalPayable) || 0;
-  const codSurcharge = String(order.paymentInfo?.provider || '').toLowerCase() === 'cod'
-    ? Number(order.pricing?.codSurcharge ?? 0)
-    : 0;
-  const handlingFee = Number(order.pricing?.handlingFee) || 0;
-  return Math.max(0, totalPayable - codSurcharge - handlingFee);
-};
 
 export const getOperationsOrders = asyncHandler(async (req, res) => {
   const { status, search, page = 1, limit = 20 } = req.query;

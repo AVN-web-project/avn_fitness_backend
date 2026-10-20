@@ -2,6 +2,7 @@ import { env } from '../config/env.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { getRefundableAmount } from './refund.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -457,7 +458,6 @@ const buildOrderItemsBlock = (items, cidPrefix) => {
 // ---------------------------------------------------------------------------
 export async function sendOrderCancellationEmail(email, order) {
   const orderNumber = order?.orderNumber || order?._id || 'ORD-UNKNOWN';
-  const pricing = order?.pricing || {};
   const items = Array.isArray(order?.items) ? order.items : [];
   const cancellation = order?.cancellation || {};
   const provider = String(order?.paymentInfo?.provider || '').toUpperCase();
@@ -476,7 +476,7 @@ export async function sendOrderCancellationEmail(email, order) {
   attachments.push(...block.attachments);
 
   const refundNotice = wasPaid
-    ? `A refund of <strong style="color:#ffffff;">${inrFormat(pricing.totalPayable)}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
+    ? `A refund of <strong style="color:#ffffff;">${inrFormat(getRefundableAmount(order))}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
     : `No payment was collected for this order, so there is nothing to refund.`;
 
   const bodyHtml = `
