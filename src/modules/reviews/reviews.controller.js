@@ -6,6 +6,8 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ACTIVITY_ACTIONS, ENTITY_TYPES, ORDER_STATUS, REVIEW_STATUS } from '../../config/constants.js';
+import { isObjectId } from '../../utils/ids.js';
+import { parsePagination } from '../../utils/pagination.js';
 
 /**
  * Recompute ratings average and count for a product
@@ -39,18 +41,17 @@ export const getProductReviews = asyncHandler(async (req, res) => {
   const { productId } = req.params;
   const { page = 1, limit = 10 } = req.query;
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   // Resolve target product by ObjectId or slug
   const product = await Product.findOne({
     $or: [
-      { _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null },
+      { _id: isObjectId(productId) ? productId : null },
       { slug: productId },
     ],
   });
-  const targetProductId = product ? product._id : (productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null);
+  const targetProductId = product ? product._id : (isObjectId(productId) ? productId : null);
 
   const filter = { product: targetProductId, status: REVIEW_STATUS.PUBLISHED };
 
@@ -93,7 +94,7 @@ export const createReview = asyncHandler(async (req, res) => {
 
   const product = await Product.findOne({
     $or: [
-      { _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null },
+      { _id: isObjectId(productId) ? productId : null },
       { slug: productId },
     ],
   });
@@ -138,8 +139,7 @@ export const getAllReviewsForModeration = asyncHandler(async (req, res) => {
 
   if (status) filter.status = status;
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [reviews, total] = await Promise.all([
@@ -204,7 +204,7 @@ export const moderateReview = asyncHandler(async (req, res) => {
 export const markReviewHelpful = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+  if (!id || !isObjectId(id)) {
     throw ApiError.badRequest('Invalid review ID');
   }
 

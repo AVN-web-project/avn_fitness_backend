@@ -5,6 +5,8 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ORDER_STATUS, ROLES, PAYMENT_STATUS } from '../../config/constants.js';
 import { sendOrderCancellationEmail } from '../../utils/email.service.js';
+import { isObjectId } from '../../utils/ids.js';
+import { parsePagination } from '../../utils/pagination.js';
 
 export const getMyOrders = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, status } = req.query;
@@ -14,8 +16,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
     filter.orderStatus = status;
   }
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total] = await Promise.all([
@@ -42,7 +43,7 @@ export const getOrderDetails = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const order = await Order.findOne({
-    $or: [{ _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }, { orderNumber: id }],
+    $or: [{ _id: isObjectId(id) ? id : null }, { orderNumber: id }],
   }).populate('items.product', 'name slug images');
 
   if (!order) {
@@ -71,7 +72,7 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
 
   const order = await Order.findOne({
     $or: [
-      { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+      { _id: isObjectId(id) ? id : null },
       { orderNumber: id },
     ],
     user: req.user._id,
@@ -146,7 +147,7 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
 
   const order = await Order.findOne({
     $or: [
-      { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null },
+      { _id: isObjectId(id) ? id : null },
       { orderNumber: id },
     ],
     user: req.user._id,

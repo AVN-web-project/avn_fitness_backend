@@ -6,6 +6,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { PRODUCT_STATUS } from '../../config/constants.js';
+import { isObjectId } from '../../utils/ids.js';
 
 /**
  * Helper to locate or instantiate a cart for authenticated users or active guests.
@@ -194,7 +195,7 @@ export const addToCart = asyncHandler(async (req, res) => {
   // Resolve product by ObjectId or slug
   const product = await Product.findOne({
     $or: [
-      { _id: productId.match(/^[0-9a-fA-F]{24}$/) ? productId : null },
+      { _id: isObjectId(productId) ? productId : null },
       { slug: productId },
     ],
   });

@@ -1,4 +1,5 @@
 import { env } from '../config/env.js';
+import { getRefundableAmount } from './refund.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -476,7 +477,7 @@ export async function sendOrderCancellationEmail(email, order) {
   attachments.push(...block.attachments);
 
   const refundNotice = wasPaid
-    ? `A refund of <strong style="color:#ffffff;">${inrFormat(pricing.totalPayable)}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
+    ? `A refund of <strong style="color:#ffffff;">${inrFormat(getRefundableAmount(order))}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
     : `No payment was collected for this order, so there is nothing to refund.`;
 
   const bodyHtml = `

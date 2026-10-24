@@ -5,6 +5,7 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ACTIVITY_ACTIONS, ENTITY_TYPES, LOG_DOMAINS } from '../../config/constants.js';
+import { isObjectId } from '../../utils/ids.js';
 
 /**
  * Get inventory derived directly from products collection & variants
@@ -215,7 +216,7 @@ export const updateInventoryItem = asyncHandler(async (req, res) => {
   const { stockQuantity, price, lowStockThreshold } = req.body;
 
   let invItem = await Inventory.findOne({
-    $or: [{ sku: id }, { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id : null }],
+    $or: [{ sku: id }, { _id: isObjectId(id) ? id : null }],
   });
 
   if (invItem) {

@@ -8,6 +8,7 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
 import { sendRefundConfirmationEmail, sendReturnStatusEmail } from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
+import { parsePagination } from '../../utils/pagination.js';
 import {
   ACTIVITY_ACTIONS,
   ENTITY_TYPES,
@@ -43,8 +44,7 @@ export const getOperationsOrders = asyncHandler(async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total] = await Promise.all([

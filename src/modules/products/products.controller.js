@@ -9,6 +9,7 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ACTIVITY_ACTIONS, ENTITY_TYPES, PRODUCT_STATUS } from '../../config/constants.js';
+import { parsePagination } from '../../utils/pagination.js';
 
 const slugify = (value) => String(value || '')
   .trim()
@@ -116,8 +117,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     sortOption = { createdAt: -1 };
   }
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [products, total] = await Promise.all([

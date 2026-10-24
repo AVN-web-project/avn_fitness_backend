@@ -5,6 +5,8 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ACTIVITY_ACTIONS, ENTITY_TYPES, ROLES, SUPPORT_STATUS } from '../../config/constants.js';
+import { isObjectId } from '../../utils/ids.js';
+import { parsePagination } from '../../utils/pagination.js';
 
 const generateTicketNumber = () => {
   return `TCK-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -47,7 +49,7 @@ export const createTicket = asyncHandler(async (req, res) => {
   // Safely resolve orderId if passed as orderNumber or ObjectId
   let resolvedOrderId = null;
   if (orderId && typeof orderId === 'string' && orderId !== 'N/A') {
-    if (orderId.match(/^[0-9a-fA-F]{24}$/)) {
+    if (isObjectId(orderId)) {
       resolvedOrderId = orderId;
     } else {
       const matchedOrder = await Order.findOne({ orderNumber: orderId });
@@ -145,8 +147,7 @@ export const getOperationsTickets = asyncHandler(async (req, res) => {
   if (status) filter.status = status;
   if (category) filter.category = category;
 
-  const pageNum = parseInt(page, 10);
-  const limitNum = parseInt(limit, 10);
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [tickets, total] = await Promise.all([

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { INDIAN_MOBILE_REGEX, INDIAN_PINCODE_REGEX } from '../utils/phone.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -9,11 +10,21 @@ const addressSchema = new mongoose.Schema(
   {
     title: { type: String, trim: true, default: 'Home' }, // Home, Office, Gym
     fullName: { type: String, required: true, trim: true },
-    phone: { type: String, required: true, trim: true },
+    phone: {
+      type: String,
+      required: true,
+      trim: true,
+      match: [INDIAN_MOBILE_REGEX, 'Enter a valid 10-digit mobile number'],
+    },
     street: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
     state: { type: String, required: true, trim: true },
-    pincode: { type: String, required: true, trim: true },
+    pincode: {
+      type: String,
+      required: true,
+      trim: true,
+      match: [INDIAN_PINCODE_REGEX, 'Enter a valid 6-digit pincode'],
+    },
     country: { type: String, default: 'India', trim: true },
     isDefault: { type: Boolean, default: false },
   },

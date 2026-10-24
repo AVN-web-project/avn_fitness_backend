@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizePhone, INDIAN_MOBILE_REGEX, INDIAN_PINCODE_REGEX } from '../../utils/phone.js';
 import { isDisposableEmail, DISPOSABLE_EMAIL_MESSAGE } from '../../utils/disposableEmail.js';
 
 const permanentEmail = z
@@ -8,12 +9,25 @@ const permanentEmail = z
     message: DISPOSABLE_EMAIL_MESSAGE,
   });
 
+// A mobile number is normalised before it is validated, so "+91 98765 43210",
+// "098765 43210" and "9876543210" all pass and are stored as "9876543210".
+const indianPhone = z
+  .string()
+  .trim()
+  .transform(normalizePhone)
+  .refine((value) => INDIAN_MOBILE_REGEX.test(value), 'Enter a valid 10-digit mobile number');
+
+const indianPincode = z
+  .string()
+  .trim()
+  .regex(INDIAN_PINCODE_REGEX, 'Enter a valid 6-digit pincode');
+
 export const registerSchema = z.object({
   body: z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(100),
     email: permanentEmail,
     password: z.string().min(6, 'Password must be at least 6 characters').optional(),
-    phone: z.string().optional(),
+    phone: indianPhone.optional(),
     otp: z.string().min(6, 'Verification code must be 6 digits').max(6, 'Verification code must be 6 digits'),
   }),
 });
@@ -50,11 +64,11 @@ export const addressSchema = z.object({
   body: z.object({
     title: z.string().optional().default('Home'),
     fullName: z.string().min(2, 'Full name is required'),
-    phone: z.string().min(10, 'Valid phone number is required'),
+    phone: indianPhone,
     street: z.string().min(5, 'Street address is required'),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
-    pincode: z.string().min(5, 'Pincode is required'),
+    pincode: indianPincode,
     country: z.string().optional().default('India'),
     isDefault: z.boolean().optional().default(false),
   }),

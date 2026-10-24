@@ -11,6 +11,8 @@ import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { sendStaffWelcomeEmail } from '../../utils/email.service.js';
 import { env } from '../../config/env.js';
+import { parsePagination } from '../../utils/pagination.js';
+import { normalizePhone, INDIAN_MOBILE_REGEX } from '../../utils/phone.js';
 
 // Entity fallbacks for each domain
 const DOMAIN_TO_ENTITIES = {
@@ -101,8 +103,7 @@ export const getActivityLogs = asyncHandler(async (req, res) => {
     }
   }
 
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = parseInt(limit, 10) || 50;
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 50 });
   const skip = (pageNum - 1) * limitNum;
 
   const [logs, total] = await Promise.all([
@@ -249,8 +250,7 @@ export const getUsers = asyncHandler(async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = parseInt(limit, 10) || 20;
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [users, total] = await Promise.all([
@@ -301,8 +301,7 @@ export const getStaff = asyncHandler(async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = parseInt(limit, 10) || 50;
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 50 });
   const skip = (pageNum - 1) * limitNum;
 
   const [staff, total] = await Promise.all([
@@ -335,12 +334,22 @@ export const createStaff = asyncHandler(async (req, res) => {
     throw ApiError.conflict('Staff member with this email already exists.');
   }
 
+  // Phone is optional for staff, but if supplied it must be a real number. Normalise
+  // first so "+91 98765 43210" and "098765 43210" are accepted and stored as 10 digits.
+  let normalisedStaffPhone;
+  if (phone !== undefined && phone !== null && String(phone).trim() !== '') {
+    normalisedStaffPhone = normalizePhone(phone);
+    if (!INDIAN_MOBILE_REGEX.test(normalisedStaffPhone)) {
+      throw ApiError.badRequest('Enter a valid 10-digit mobile number.');
+    }
+  }
+
   const newStaff = await Staff.create({
     name,
     email: normalizedEmail,
     password,
     role,
-    phone,
+    phone: normalisedStaffPhone || undefined,
     permissions: permissions || [],
   });
 
@@ -480,8 +489,7 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = parseInt(limit, 10) || 20;
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total, allOrders] = await Promise.all([
@@ -648,8 +656,7 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
     ];
   }
 
-  const pageNum = parseInt(page, 10) || 1;
-  const limitNum = parseInt(limit, 10) || 20;
+const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total, allRelevant] = await Promise.all([

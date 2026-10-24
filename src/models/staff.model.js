@@ -1,4 +1,5 @@
 ﻿import mongoose from 'mongoose';
+import { INDIAN_MOBILE_REGEX } from '../utils/phone.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -52,6 +53,7 @@ const staffSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
+      match: [INDIAN_MOBILE_REGEX, 'Enter a valid 10-digit mobile number'],
     },
     employeeId: {
       type: String,
