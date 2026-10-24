@@ -186,12 +186,16 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     await Cart.deleteMany({ guestId });
   }
 
-  // Dispatch Order Confirmation Email asynchronously
+  // Awaited deliberately. On a serverless host the function is frozen once the response
+  // is returned, which kills any fire-and-forget send before it completes — and because
+  // the process dies, the .catch() never runs either, so there is no log to diagnose from.
   const customerEmail = req.user?.email || selectedAddress?.email;
   if (customerEmail) {
-    sendOrderConfirmationEmail(customerEmail, order).catch((err) =>
-      console.warn('⚠️ Order confirmation email dispatch failed:', err.message)
-    );
+    try {
+      await sendOrderConfirmationEmail(customerEmail, order);
+    } catch (err) {
+      console.warn('⚠️ Order confirmation email dispatch failed:', err.message);
+    }
   }
 
   return ApiResponse.success(
@@ -292,12 +296,14 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       providerSignature: signature || '',
     });
 
-    // Dispatch Order Confirmation Email asynchronously upon payment capture
+    // Order confirmation on payment capture. Awaited — see the note on the send above.
     const customerEmail = req.user?.email;
     if (customerEmail) {
-      sendOrderConfirmationEmail(customerEmail, order).catch((err) =>
-        console.warn('⚠️ Order confirmation email dispatch failed:', err.message)
-      );
+      try {
+        await sendOrderConfirmationEmail(customerEmail, order);
+      } catch (err) {
+        console.warn('⚠️ Order confirmation email dispatch failed:', err.message);
+      }
     }
 
     return ApiResponse.success(res, { order }, 'Payment verified! Order placed successfully.');

@@ -2,7 +2,6 @@ import { env } from '../config/env.js';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { getRefundableAmount } from './refund.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,7 +54,7 @@ export async function sendOtpEmail(email, otp) {
               <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #FF1E27; padding: 12px 0; font-family: monospace;">
                 ${otp}
               </div>
-              <p style="color: #666; font-size: 12px; margin-top: 12px;">This code expires in 5 minutes. Do not share it with anyone.</p>
+              <p style="color: #666; font-size: 12px; margin-top: 12px;">This code expires in 15 minutes. Do not share it with anyone.</p>
             </div>
           </div>
         `,
@@ -458,6 +457,7 @@ const buildOrderItemsBlock = (items, cidPrefix) => {
 // ---------------------------------------------------------------------------
 export async function sendOrderCancellationEmail(email, order) {
   const orderNumber = order?.orderNumber || order?._id || 'ORD-UNKNOWN';
+  const pricing = order?.pricing || {};
   const items = Array.isArray(order?.items) ? order.items : [];
   const cancellation = order?.cancellation || {};
   const provider = String(order?.paymentInfo?.provider || '').toUpperCase();
@@ -476,7 +476,7 @@ export async function sendOrderCancellationEmail(email, order) {
   attachments.push(...block.attachments);
 
   const refundNotice = wasPaid
-    ? `A refund of <strong style="color:#ffffff;">${inrFormat(getRefundableAmount(order))}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
+    ? `A refund of <strong style="color:#ffffff;">${inrFormat(pricing.totalPayable)}</strong> will be processed back to your original payment method within 5-7 business days. We will email you again once it is complete.`
     : `No payment was collected for this order, so there is nothing to refund.`;
 
   const bodyHtml = `

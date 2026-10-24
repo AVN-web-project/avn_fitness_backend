@@ -12,6 +12,10 @@ import { asyncHandler } from '../../utils/asyncHandler.js';
 import { env } from '../../config/env.js';
 import { ROLES } from '../../config/constants.js';
 
+// How long a verification code stays valid. The Otp model has a TTL index on
+// expiresAt, so MongoDB deletes the record automatically once this passes.
+const OTP_TTL_MINUTES = 15;
+
 const sendTokenResponse = (account, statusCode, res, message) => {
   const token = account.generateAuthToken();
 
@@ -56,7 +60,11 @@ export const register = asyncHandler(async (req, res) => {
   // Find OTP record
   const otpRecord = await Otp.findOne({ email: normalizedEmail });
   if (!otpRecord) {
-    throw ApiError.badRequest('Verification code has expired or was not requested. Please request a new code.');
+    // The record is gone: either it was never requested, already used, or MongoDB's TTL
+    // index removed it after OTP_TTL_MINUTES.
+    throw ApiError.badRequest(
+      `This verification code is no longer valid — it may have already been used, or it expired after ${OTP_TTL_MINUTES} minutes. Please request a new code.`
+    );
   }
 
   if (otpRecord.expiresAt < new Date()) {
@@ -82,7 +90,11 @@ export const register = asyncHandler(async (req, res) => {
     email: normalizedEmail,
     password,
     phone,
-    authProvider: 'local',
+    // Accounts are created passwordless — the customer proves ownership by OTP first and
+    // may add a password afterwards. Marking them 'local' here would demand a password
+    // this request doesn't carry, and the model rejects it ("Path `password` is
+    // required"). setPassword flips this to 'local' once a password actually exists.
+    authProvider: password ? 'local' : 'otp',
     role: ROLES.USER,
     isActive: true,
   });
@@ -151,7 +163,7 @@ export const sendOtp = asyncHandler(async (req, res) => {
   }
 
   const otp = crypto.randomInt(100000, 1000000).toString();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + OTP_TTL_MINUTES * 60 * 1000);
   const otpHash = await bcrypt.hash(otp, 10);
 
   await Otp.findOneAndUpdate(
@@ -162,7 +174,7 @@ export const sendOtp = asyncHandler(async (req, res) => {
 
   await sendOtpEmail(normalizedEmail, otp);
 
-  return ApiResponse.success(res, { email: normalizedEmail, expiresIn: 300 }, 'Verification code sent successfully.');
+  return ApiResponse.success(res, { email: normalizedEmail, expiresIn: OTP_TTL_MINUTES * 60 }, 'Verification code sent successfully.');
 });
 
 /**
@@ -367,7 +379,15 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
     // The admin portal is a react-router app, so its link targets the /reset-password
     // route; the storefront reads the token from its root URL instead.
-    const base = isAdminPortal ? env.ADMIN_CLIENT_URL : env.CLIENT_URL;
+    //
+    // CLIENT_URL is also fed to the CORS allow-list, which SPLITS it on commas — so a
+    // deployment may legitimately hold "https://a.com,https://b.com" there. A link needs
+    // exactly one origin, so take the first and discard the rest. Without this the href
+    // becomes "https://a.com,https://b.com/?resetToken=…" and the browser rejects it.
+    const firstOrigin = (value, fallback) =>
+      String(value || '').split(',')[0].trim().replace(/\/+$/, '') || fallback;
+
+    const base = firstOrigin(isAdminPortal ? env.ADMIN_CLIENT_URL : env.CLIENT_URL, '');
     const path = isAdminPortal ? '/reset-password' : '/';
     const resetUrl = `${base}${path}?resetToken=${rawToken}&email=${encodeURIComponent(account.email)}`;
 

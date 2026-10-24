@@ -121,11 +121,15 @@ export const requestOrderCancellation = asyncHandler(async (req, res) => {
 
   await order.save();
 
-  // Cancellation confirmation — non-blocking, never delay the response on email.
+  // Awaited deliberately. On a serverless host the function is frozen once the response
+  // is returned, which kills any fire-and-forget send before it completes — and because
+  // the process dies, the .catch() never runs either, so there is no log to diagnose from.
   if (req.user?.email) {
-    sendOrderCancellationEmail(req.user.email, order).catch((err) =>
-      console.warn('⚠️ Cancellation email dispatch failed:', err.message)
-    );
+    try {
+      await sendOrderCancellationEmail(req.user.email, order);
+    } catch (err) {
+      console.warn('⚠️ Cancellation email dispatch failed:', err.message);
+    }
   }
 
   return ApiResponse.success(res, { order }, 'Order cancelled successfully');

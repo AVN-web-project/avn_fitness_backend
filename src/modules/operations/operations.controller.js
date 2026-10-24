@@ -6,7 +6,6 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
-import { getRefundableAmount } from '../../utils/refund.js';
 import { sendRefundConfirmationEmail, sendReturnStatusEmail } from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import {
@@ -17,6 +16,15 @@ import {
   ROLES,
   SHIPMENT_STATUS,
 } from '../../config/constants.js';
+
+const getRefundableAmount = (order) => {
+  const totalPayable = Number(order.pricing?.totalPayable) || 0;
+  const codSurcharge = String(order.paymentInfo?.provider || '').toLowerCase() === 'cod'
+    ? Number(order.pricing?.codSurcharge ?? 0)
+    : 0;
+  const handlingFee = Number(order.pricing?.handlingFee) || 0;
+  return Math.max(0, totalPayable - codSurcharge - handlingFee);
+};
 
 export const getOperationsOrders = asyncHandler(async (req, res) => {
   const { status, search, page = 1, limit = 20 } = req.query;
@@ -292,10 +300,15 @@ export const reviewReturnRequest = asyncHandler(async (req, res) => {
 
   // Tell the customer the outcome. Until now the only email in this lifecycle was
   // the refund confirmation, so a declined return was never communicated at all.
+  // Awaited deliberately. On a serverless host the function is frozen once the response
+  // is returned, which kills any fire-and-forget send before it completes — and because
+  // the process dies, the .catch() never runs either, so there is no log to diagnose from.
   if (order.user?.email) {
-    sendReturnStatusEmail(order.user.email, order).catch((err) =>
-      console.warn('Return status email failed:', err.message)
-    );
+    try {
+      await sendReturnStatusEmail(order.user.email, order);
+    } catch (err) {
+      console.warn('Return status email failed:', err.message);
+    }
   }
 
   return ApiResponse.success(res, { order }, `Return request ${action}d successfully`);
@@ -380,11 +393,13 @@ export const recordRefund = asyncHandler(async (req, res) => {
     ipAddress: req.ip,
   });
 
-  // Refund confirmation — non-blocking.
+  // Refund confirmation. Awaited — see the note on the return-status send above.
   if (order.user?.email) {
-    sendRefundConfirmationEmail(order.user.email, order).catch((err) =>
-      console.warn('⚠️ Refund email dispatch failed:', err.message)
-    );
+    try {
+      await sendRefundConfirmationEmail(order.user.email, order);
+    } catch (err) {
+      console.warn('⚠️ Refund email dispatch failed:', err.message);
+    }
   }
 
   return ApiResponse.success(res, { order }, `Refund of ₹${finalRefundAmount} recorded successfully`);
