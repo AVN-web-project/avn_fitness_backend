@@ -12,96 +12,126 @@ import { isObjectId } from '../../utils/ids.js';
  * GET /api/v1/inventory
  */
 export const getInventory = asyncHandler(async (req, res) => {
-  const { search, lowStock, page, limit = 50 } = req.query;
+  const { search, lowStock } = req.query;
+  const threshold = 5;
 
-  const productFilter = {};
-  if (search) {
-    productFilter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { 'variants.sku': { $regex: search, $options: 'i' } },
-      { 'variants.title': { $regex: search, $options: 'i' } },
-    ];
+  // The inventory ledger is the authority for SKUs. A row can exist there whose product variant
+  // is missing, and a product can hold a variant with no ledger row. Reading only
+  // products.variants — as this used to — silently hid every ledger-only row, which is why the
+  // page showed 15 SKUs while the collection held 25.
+  const [ledgerRows, products] = await Promise.all([
+    Inventory.find({}).lean(),
+    Product.find({})
+      .populate('category', 'name slug')
+      .select('_id name slug category price status isAvailable isPublished variants images image updatedAt')
+      .lean(),
+  ]);
+
+  const productById = new Map(products.map((prod) => [String(prod._id), prod]));
+  const rows = [];
+  const seen = new Set();
+
+  const push = (row) => {
+    const key = String(row.sku || '').toUpperCase();
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    rows.push(row);
+  };
+
+  const primaryImage = (prod) =>
+    (prod?.images && prod.images.find((i) => i.isPrimary)?.url) ||
+    (prod?.images && prod.images[0]?.url) ||
+    prod?.image ||
+    null;
+
+  // 1. every row in the ledger
+  for (const inv of ledgerRows) {
+    const prod = productById.get(String(inv.product));
+    const variant = (prod?.variants || []).find((v) => v.sku === inv.sku);
+    push({
+      _id: inv._id,
+      productId: inv.product || prod?._id || null,
+      productName: inv.productName || prod?.name || 'Unknown product',
+      productSlug: prod?.slug || null,
+      productStatus: prod?.status || 'active',
+      isProductActive: prod ? prod.status !== 'inactive' : true,
+      category: prod?.category?.name || 'General Gear',
+      sku: inv.sku,
+      variantTitle: inv.variantTitle || variant?.title || `${inv.size || ''} ${inv.color || ''}`.trim() || 'Standard Variant',
+      size: inv.size && inv.size !== 'undefined' ? inv.size : 'Standard',
+      color: inv.color && inv.color !== 'undefined' ? inv.color : 'Standard',
+      stockQuantity: Number(inv.stockQuantity) || 0,
+      lowStockThreshold: Number(inv.lowStockThreshold) || threshold,
+      price: Number(inv.price ?? variant?.price ?? prod?.price) || 0,
+      isAvailable: inv.isAvailable !== false && (variant ? variant.isActive !== false : true),
+      isPublished: prod?.isPublished,
+      image: primaryImage(prod),
+      images: prod?.images || [],
+      lastRestockedAt: inv.lastRestockedAt || inv.updatedAt || prod?.updatedAt,
+    });
   }
 
-  const products = await Product.find(productFilter)
-    .populate('category', 'name slug')
-    .select('_id name slug category price status isAvailable isPublished variants images image updatedAt')
-    .sort({ name: 1 })
-    .lean();
-
-  let inventoryList = [];
+  // 2. any variant with no ledger row, so a missing ledger entry cannot hide a buyable SKU
   for (const prod of products) {
     for (const v of prod.variants || []) {
-      const stockQty = Number(v.stockQuantity !== undefined ? v.stockQuantity : v.stock || 0);
-      const threshold = 5;
-
-      if (search) {
-        const s = search.toLowerCase();
-        const matchesSku = v.sku && v.sku.toLowerCase().includes(s);
-        const matchesName = prod.name && prod.name.toLowerCase().includes(s);
-        const matchesTitle = v.title && v.title.toLowerCase().includes(s);
-        const matchesCat = prod.category?.name && prod.category.name.toLowerCase().includes(s);
-        if (!matchesSku && !matchesName && !matchesTitle && !matchesCat) continue;
-      }
-
-      if ((lowStock === 'true' || lowStock === true) && stockQty > threshold) {
-        continue;
-      }
-
-      const primaryImage = (prod.images && prod.images.find(i => i.isPrimary)?.url) || (prod.images && prod.images[0]?.url) || prod.image || null;
-      const isProdActive = prod.status !== 'inactive';
-      inventoryList.push({
+      push({
         _id: v._id || `${prod._id}_${v.sku}`,
         productId: prod._id,
         productName: prod.name,
         productSlug: prod.slug,
         productStatus: prod.status || 'active',
-        isProductActive: isProdActive,
+        isProductActive: prod.status !== 'inactive',
         category: prod.category?.name || 'General Gear',
         sku: v.sku,
         variantTitle: v.title || `${v.size || ''} ${v.color || ''}`.trim() || 'Standard Variant',
         size: v.size && v.size !== 'undefined' ? v.size : 'Standard',
         color: v.color && v.color !== 'undefined' ? v.color : 'Standard',
-        stockQuantity: stockQty,
+        stockQuantity: Number(v.stockQuantity !== undefined ? v.stockQuantity : v.stock) || 0,
         lowStockThreshold: threshold,
         price: Number(v.price) || Number(prod.price) || 0,
-        isAvailable: (prod.isAvailable !== false && v.isAvailable !== false && v.isActive !== false),
+        isAvailable: prod.isAvailable !== false && v.isAvailable !== false && v.isActive !== false,
         isPublished: prod.isPublished,
-        image: primaryImage,
+        image: primaryImage(prod),
         images: prod.images || [],
         lastRestockedAt: prod.updatedAt,
       });
     }
   }
 
-  const allProducts = await Product.find({}).select('variants status').lean();
-  let totalSkus = 0;
-  let lowStockCount = 0;
-  let outOfStockCount = 0;
-  let inactiveProductSkusCount = 0;
+  // Counts cover the whole set, before any filter, so the stat tiles stay global.
+  const totalSkus = rows.length;
+  const outOfStockCount = rows.filter((r) => r.stockQuantity === 0).length;
+  const lowStockCount = rows.filter(
+    (r) => r.stockQuantity > 0 && r.stockQuantity <= (r.lowStockThreshold || threshold)
+  ).length;
+  const inactiveProductSkusCount = rows.filter(
+    (r) => r.productStatus === 'inactive' || r.isProductActive === false
+  ).length;
 
-  for (const p of allProducts) {
-    const isInactive = p.status === 'inactive';
-    for (const v of p.variants || []) {
-      totalSkus++;
-      if (isInactive) inactiveProductSkusCount++;
-      const qty = Number(v.stockQuantity !== undefined ? v.stockQuantity : v.stock || 0);
-      if (qty === 0) outOfStockCount++;
-      else if (qty <= 5) lowStockCount++;
-    }
+  let items = rows;
+  if (search) {
+    const s = String(search).toLowerCase();
+    items = items.filter((r) =>
+      [r.sku, r.productName, r.variantTitle, r.category].some((v) =>
+        String(v || '').toLowerCase().includes(s)
+      )
+    );
+  }
+  if (lowStock === 'true' || lowStock === true) {
+    items = items.filter((r) => r.stockQuantity <= (r.lowStockThreshold || threshold));
   }
 
   return ApiResponse.success(
     res,
     {
-      items: inventoryList,
-      total: inventoryList.length,
+      items,
+      total: items.length,
       totalSkus,
       lowStockCount,
       outOfStockCount,
       inactiveProductSkusCount,
     },
-    'Inventory synchronized directly from products collection successfully'
+    'Inventory loaded from the inventory ledger'
   );
 });
 
@@ -118,13 +148,60 @@ export const adjustStock = asyncHandler(async (req, res) => {
   }
 
   const product = await Product.findOne({ 'variants.sku': targetSku });
-  if (!product) {
-    throw ApiError.notFound(`Product variant with SKU '${targetSku}' not found`);
-  }
+  const variant = product?.variants?.find((v) => v.sku === targetSku) || null;
 
-  const variant = product.variants.find((v) => v.sku === targetSku);
-  if (!variant) {
-    throw ApiError.notFound(`Variant with SKU '${targetSku}' not found`);
+  // A ledger-only SKU has no product variant behind it, but it is a real row the admin can see,
+  // so it must be editable rather than answering 404.
+  if (!product || !variant) {
+    const ledgerRow = await Inventory.findOne({ sku: targetSku });
+    if (!ledgerRow) {
+      throw ApiError.notFound(`No variant or inventory row found for SKU '${targetSku}'`);
+    }
+
+    const previousStock = Number(ledgerRow.stockQuantity) || 0;
+    let numeric = previousStock;
+    if (stockQuantity !== undefined) numeric = Math.max(0, parseInt(stockQuantity, 10) || 0);
+    else if (newQuantity !== undefined) numeric = Math.max(0, parseInt(newQuantity, 10) || 0);
+    else if (delta !== undefined) numeric = Math.max(0, previousStock + (parseInt(delta, 10) || 0));
+
+    ledgerRow.stockQuantity = numeric;
+    if (price !== undefined && Number(price) >= 0) ledgerRow.price = Number(price);
+    if (lowStockThreshold !== undefined && Number(lowStockThreshold) >= 0) {
+      ledgerRow.lowStockThreshold = Number(lowStockThreshold);
+    }
+    if (isAvailable !== undefined) {
+      ledgerRow.isAvailable = isAvailable === true || isAvailable === 'available' || isAvailable === 'true';
+    }
+    ledgerRow.lastRestockedAt = new Date();
+    await ledgerRow.save();
+
+    await recordActivityLog({
+      user: req.user || req.admin,
+      action: ACTIVITY_ACTIONS.INVENTORY_UPDATED,
+      domain: LOG_DOMAINS.INVENTORY,
+      targetEntity: ENTITY_TYPES.PRODUCT,
+      targetEntityId: ledgerRow.product || null,
+      details: {
+        sku: ledgerRow.sku,
+        productName: ledgerRow.productName,
+        previousStock,
+        newStock: numeric,
+        context: `Ledger-only SKU ${ledgerRow.sku} updated to ${numeric} units`,
+      },
+      ipAddress: req.ip,
+    });
+
+    return ApiResponse.success(
+      res,
+      {
+        sku: ledgerRow.sku,
+        productName: ledgerRow.productName,
+        stockQuantity: numeric,
+        price: ledgerRow.price,
+        isAvailable: ledgerRow.isAvailable !== false,
+      },
+      `Stock for ${ledgerRow.sku} updated to ${numeric}`
+    );
   }
 
   const previousStock = variant.stockQuantity;
