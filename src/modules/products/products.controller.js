@@ -26,6 +26,32 @@ const makeVariantSku = (productName, index) => {
   return `${prefix}-${index + 1}-${Date.now().toString().slice(-4)}`;
 };
 
+/**
+ * Scope images to variants. `variantSkus` empty (or absent) means the image is common to every
+ * variant. Any SKU that does not belong to this product is dropped, so a mapping can never
+ * outlive the variant it points at.
+ */
+const sanitizeImageVariantScope = (images, variants) => {
+  if (!Array.isArray(images)) return images;
+  const validSkus = new Set(
+    (Array.isArray(variants) ? variants : [])
+      .map((v) => String(v?.sku || '').trim().toUpperCase())
+      .filter(Boolean)
+  );
+  return images.map((img) => {
+    if (!img || typeof img !== 'object') return img;
+    const raw = Array.isArray(img.variantSkus) ? img.variantSkus : [];
+    const cleaned = [
+      ...new Set(
+        raw
+          .map((sku) => String(sku || '').trim().toUpperCase())
+          .filter((sku) => validSkus.has(sku))
+      ),
+    ];
+    return { ...img, variantSkus: cleaned };
+  });
+};
+
 export const getProducts = asyncHandler(async (req, res) => {
   const {
     category,
@@ -235,7 +261,10 @@ export const createProduct = asyncHandler(async (req, res) => {
     subCategory: subCategory || null,
     ageGroup: ageGroup || 'all',
     gender: gender || 'unisex',
-    images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
+    images: sanitizeImageVariantScope(
+      images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
+      normalizedVariants
+    ),
     specifications: specifications || [],
     sizeGuide,
     careInstructions: careInstructions || '',
@@ -327,6 +356,12 @@ export const updateProduct = asyncHandler(async (req, res) => {
       const sku = String(v?.sku || '').trim().toUpperCase();
       v.sku = sku || makeVariantSku(product.name, i);
     });
+  }
+
+  // Image→variant scope must be validated against the SKUs that actually exist, which is only
+  // known after the variant normalisation above.
+  if (Array.isArray(product.images)) {
+    product.images = sanitizeImageVariantScope(product.images, product.variants);
   }
 
   await product.save();

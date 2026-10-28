@@ -68,6 +68,11 @@ const productImageSchema = new mongoose.Schema(
     url: { type: String, required: true, trim: true },
     altText: { type: String, default: '', trim: true },
     isPrimary: { type: Boolean, default: false },
+    // Which variant(s) this image belongs to, keyed by SKU. An EMPTY array means the image is
+    // common to every variant — that is the "All" option in the admin Media tab. SKU is the key
+    // rather than the variant _id because SKU is mandatory on every variant and already unique,
+    // so a mapping survives a variant being re-saved, and can be set before the variant exists.
+    variantSkus: [{ type: String, trim: true, uppercase: true }],
   },
   { _id: true }
 );

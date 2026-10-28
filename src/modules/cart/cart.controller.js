@@ -88,6 +88,26 @@ const calculateCartTotals = async (cart) => {
       continue;
     }
 
+    // Option data, so a cart line is self-describing. The storefront renders its size/colour
+    // dropdowns from these and re-resolves the SKU when the customer switches variant. Without
+    // them a line can only ever show the variant it was originally added with, and the dropdowns
+    // vanish the moment the cart is reloaded from the server.
+    const activeVariants = product.variants.filter((v) => v.isActive);
+    const sizeOptions = [...new Set(activeVariants.map((v) => v.size).filter(Boolean))];
+    const colorOptions = [];
+    for (const v of activeVariants) {
+      // The storefront reads `.name`, so colours are objects, not bare strings.
+      if (v.color && !colorOptions.some((c) => c.name === v.color)) colorOptions.push({ name: v.color });
+    }
+    const variantOptions = activeVariants.map((v) => ({
+      sku: v.sku,
+      size: v.size,
+      color: v.color,
+      price: v.price,
+      compareAtPrice: v.compareAtPrice,
+      isActive: true,
+    }));
+
     const itemPrice = variant.price;
     const itemSubtotal = itemPrice * item.quantity;
     subtotal += itemSubtotal;
@@ -103,6 +123,9 @@ const calculateCartTotals = async (cart) => {
       variantTitle: variant.title,
       selectedSize: variant.size || 'Standard',
       selectedColor: variant.color || 'Crimson Red',
+      sizes: sizeOptions,
+      colors: colorOptions,
+      variants: variantOptions,
       price: itemPrice,
       compareAtPrice: variant.compareAtPrice,
       quantity: item.quantity,
