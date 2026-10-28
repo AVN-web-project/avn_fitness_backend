@@ -88,26 +88,6 @@ const calculateCartTotals = async (cart) => {
       continue;
     }
 
-    // Option data, so a cart line is self-describing. The storefront renders its size/colour
-    // dropdowns from these and re-resolves the SKU when the customer switches variant. Without
-    // them a line can only ever show the variant it was originally added with, and the dropdowns
-    // vanish the moment the cart is reloaded from the server.
-    const activeVariants = product.variants.filter((v) => v.isActive);
-    const sizeOptions = [...new Set(activeVariants.map((v) => v.size).filter(Boolean))];
-    const colorOptions = [];
-    for (const v of activeVariants) {
-      // The storefront reads `.name`, so colours are objects, not bare strings.
-      if (v.color && !colorOptions.some((c) => c.name === v.color)) colorOptions.push({ name: v.color });
-    }
-    const variantOptions = activeVariants.map((v) => ({
-      sku: v.sku,
-      size: v.size,
-      color: v.color,
-      price: v.price,
-      compareAtPrice: v.compareAtPrice,
-      isActive: true,
-    }));
-
     const itemPrice = variant.price;
     const itemSubtotal = itemPrice * item.quantity;
     subtotal += itemSubtotal;
@@ -123,9 +103,6 @@ const calculateCartTotals = async (cart) => {
       variantTitle: variant.title,
       selectedSize: variant.size || 'Standard',
       selectedColor: variant.color || 'Crimson Red',
-      sizes: sizeOptions,
-      colors: colorOptions,
-      variants: variantOptions,
       price: itemPrice,
       compareAtPrice: variant.compareAtPrice,
       quantity: item.quantity,
@@ -226,8 +203,21 @@ export const addToCart = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('This product is unavailable or discontinued.');
   }
 
+  const isPurchasable = (v) => v && v.isActive !== false && v.isAvailable !== false;
+
   // 1. Direct SKU match if provided
-  let variant = variantSku ? product.variants.find((v) => v.sku === variantSku && v.isActive) : null;
+  let variant = variantSku ? product.variants.find((v) => v.sku === variantSku) : null;
+
+  // A named SKU that does not exist, or that is inactive or marked unavailable, must be refused.
+  // Previously this fell through to the fallbacks below, which quietly substituted a different
+  // variant — so the customer got something they never chose, and an unavailable SKU could still
+  // reach the cart.
+  if (variantSku && !variant) {
+    throw ApiError.badRequest(`That variant (${variantSku}) is no longer available.`);
+  }
+  if (variantSku && variant && !isPurchasable(variant)) {
+    throw ApiError.badRequest('That variant is currently unavailable. Please choose another.');
+  }
 
   // 2. Fallback: Match by size & color attributes
   if (!variant && (selectedSize || selectedColor)) {
@@ -235,17 +225,18 @@ export const addToCart = asyncHandler(async (req, res) => {
       (v) =>
         (!selectedSize || v.size === selectedSize || v.title?.includes(selectedSize)) &&
         (!selectedColor || v.color === selectedColor || v.title?.includes(selectedColor)) &&
-        v.isActive
+        isPurchasable(v)
     );
   }
 
-  // 3. Fallback: First active variant
+  // 3. Fallback: first purchasable variant. There is deliberately no unconditional last resort —
+  // `|| product.variants[0]` is what let an entirely unavailable product into the cart.
   if (!variant) {
-    variant = product.variants.find((v) => v.isActive) || product.variants[0];
+    variant = product.variants.find((v) => isPurchasable(v));
   }
 
   if (!variant) {
-    throw ApiError.badRequest('No active variant available for this product.');
+    throw ApiError.badRequest('No available variant for this product.');
   }
 
   const parsedQty = Math.max(1, Number(quantity) || 1);

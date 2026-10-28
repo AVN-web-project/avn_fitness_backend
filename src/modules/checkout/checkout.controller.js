@@ -84,6 +84,19 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       continue; // stale variant SKU — the cart already hides these from the customer
     }
 
+    // Stock and availability are re-checked HERE, not only when the item was added to the cart.
+    // Stock can fall to zero, or an admin can mark a SKU unavailable, while the item sits in a
+    // cart — and without this a sold-out or withdrawn variant could still be paid for.
+    const onHand = Number(variant.stockQuantity) || 0;
+    const label = `${product.name}${variant.title ? ` — ${variant.title}` : ''}`;
+
+    if (variant.isAvailable === false || onHand <= 0) {
+      throw ApiError.badRequest(`"${label}" is no longer available. Please remove it from your cart.`);
+    }
+    if (onHand < item.quantity) {
+      throw ApiError.badRequest(`Only ${onHand} left of "${label}". Please reduce the quantity.`);
+    }
+
     const itemSubtotal = variant.price * item.quantity;
     subtotal += itemSubtotal;
 
@@ -265,11 +278,28 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       note: `Payment verified and captured via ${order.paymentInfo.provider}.`,
     });
 
-    // Deduct stock for items
+    // Deduct stock for items. The stock check and the decrement happen in ONE conditional
+    // update, so two shoppers paying at the same moment cannot both take the last unit and
+    // drive the count below zero. If the guard fails the stock is left alone and the shortfall
+    // is reported, because the money has already been captured by this point.
+    const oversold = [];
     for (const item of order.items) {
-      await Product.updateOne(
-        { _id: item.product, 'variants.sku': item.variantSku },
+      const result = await Product.updateOne(
+        {
+          _id: item.product,
+          variants: { $elemMatch: { sku: item.variantSku, stockQuantity: { $gte: item.quantity } } },
+        },
         { $inc: { 'variants.$.stockQuantity': -item.quantity } }
+      );
+      if (result.modifiedCount === 0) {
+        oversold.push({ sku: item.variantSku, wanted: item.quantity, name: item.name });
+      }
+    }
+    if (oversold.length) {
+      console.warn(
+        `[checkout] oversold on order ${order.orderNumber || order._id}: ` +
+        oversold.map((o) => `${o.sku} (wanted ${o.wanted})`).join(', ') +
+        ' — stock left unchanged; refund or restock manually.'
       );
     }
 
