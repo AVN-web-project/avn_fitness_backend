@@ -1,0 +1,10 @@
+{
+  "database": "avn_fitness",
+  "takenAt": "2026-10-29T06:21:32.519Z",
+  "collections": {
+    "products": 9,
+    "inventory_m": 26,
+    "carts": 1,
+    "orders": 38
+  }
+}

@@ -8,6 +8,7 @@ import {
   removeCoupon,
   removeFromCart,
   updateCartItemQuantity,
+  updateCartItemVariant,
 } from './cart.controller.js';
 import { optionalAuth } from '../../middlewares/auth.middleware.js';
 
@@ -26,6 +27,10 @@ router.post('/items', addToCart);
 // Update quantity (both /:itemId and /items/:itemId aliases supported)
 router.patch('/:itemId', updateCartItemQuantity);
 router.patch('/items/:itemId', updateCartItemQuantity);
+
+// Change the variant of an existing line (size / colour), validated against the product
+router.patch('/:itemId/variant', updateCartItemVariant);
+router.patch('/items/:itemId/variant', updateCartItemVariant);
 
 // Remove item (both /:itemId and /items/:itemId aliases supported)
 router.delete('/:itemId', removeFromCart);

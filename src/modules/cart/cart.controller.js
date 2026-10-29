@@ -77,7 +77,7 @@ const calculateCartTotals = async (cart) => {
   for (const item of cart.items) {
     let product = item.product;
     if (!product || !product.variants) {
-      product = await Product.findById(item.product).select('name slug images variants status');
+      product = await Product.findById(item.product).select('name slug images variants status colors');
     }
     if (!product || product.status !== PRODUCT_STATUS.ACTIVE) {
       continue;
@@ -92,6 +92,18 @@ const calculateCartTotals = async (cart) => {
     const itemSubtotal = itemPrice * item.quantity;
     subtotal += itemSubtotal;
 
+    // The cart page renders its size/colour selectors and the weight·pack subtitle from these.
+    // A refresh rebuilds every line from this response, so anything missing here silently
+    // disappears from the UI — which is exactly what happened to the variant selectors.
+    const activeVariants = product.variants.filter((v) => v.isActive !== false);
+    const sizes = [...new Set(activeVariants.map((v) => v.size).filter(Boolean))];
+    const colourNames = [...new Set(activeVariants.map((v) => v.color).filter(Boolean))];
+    const colourHex = new Map(
+      (Array.isArray(product.colors) ? product.colors : [])
+        .filter((c) => c && c.name)
+        .map((c) => [String(c.name).toUpperCase(), c.hex || null])
+    );
+
     verifiedItems.push({
       _id: item._id || variant.sku,
       id: item._id || variant.sku,
@@ -103,6 +115,28 @@ const calculateCartTotals = async (cart) => {
       variantTitle: variant.title,
       selectedSize: variant.size || 'Standard',
       selectedColor: variant.color || 'Crimson Red',
+      // Options for the in-line variant selectors.
+      sizes,
+      colors: colourNames.map((name) => ({ name, hex: colourHex.get(String(name).toUpperCase()) || null })),
+      // The full active matrix, so the cart can resolve a size/colour change to a SKU without
+      // guessing. Without it the selectors move but the line never actually switches.
+      variants: activeVariants.map((v) => ({
+        sku: v.sku,
+        size: v.size,
+        color: v.color,
+        price: v.price,
+        compareAtPrice: v.compareAtPrice,
+        resistanceLevel: v.resistanceLevel || '',
+        weight: v.weight || '',
+        packQuantity: Number(v.packQuantity) || 1,
+        stockQuantity: Number(v.stockQuantity) || 0,
+      })),
+      // Variant specs shown in the subtitle (e.g. "150 grams · Single Pair").
+      weight: variant.weight || '',
+      packQuantity: Number(variant.packQuantity) || 1,
+      resistanceLevel: variant.resistanceLevel || '',
+      inStock: (Number(variant.stockQuantity) || 0) > 0,
+      variantId: variant._id,
       price: itemPrice,
       compareAtPrice: variant.compareAtPrice,
       quantity: item.quantity,
@@ -203,21 +237,8 @@ export const addToCart = asyncHandler(async (req, res) => {
     throw ApiError.badRequest('This product is unavailable or discontinued.');
   }
 
-  const isPurchasable = (v) => v && v.isActive !== false && v.isAvailable !== false;
-
   // 1. Direct SKU match if provided
-  let variant = variantSku ? product.variants.find((v) => v.sku === variantSku) : null;
-
-  // A named SKU that does not exist, or that is inactive or marked unavailable, must be refused.
-  // Previously this fell through to the fallbacks below, which quietly substituted a different
-  // variant — so the customer got something they never chose, and an unavailable SKU could still
-  // reach the cart.
-  if (variantSku && !variant) {
-    throw ApiError.badRequest(`That variant (${variantSku}) is no longer available.`);
-  }
-  if (variantSku && variant && !isPurchasable(variant)) {
-    throw ApiError.badRequest('That variant is currently unavailable. Please choose another.');
-  }
+  let variant = variantSku ? product.variants.find((v) => v.sku === variantSku && v.isActive) : null;
 
   // 2. Fallback: Match by size & color attributes
   if (!variant && (selectedSize || selectedColor)) {
@@ -225,18 +246,17 @@ export const addToCart = asyncHandler(async (req, res) => {
       (v) =>
         (!selectedSize || v.size === selectedSize || v.title?.includes(selectedSize)) &&
         (!selectedColor || v.color === selectedColor || v.title?.includes(selectedColor)) &&
-        isPurchasable(v)
+        v.isActive
     );
   }
 
-  // 3. Fallback: first purchasable variant. There is deliberately no unconditional last resort —
-  // `|| product.variants[0]` is what let an entirely unavailable product into the cart.
+  // 3. Fallback: First active variant
   if (!variant) {
-    variant = product.variants.find((v) => isPurchasable(v));
+    variant = product.variants.find((v) => v.isActive) || product.variants[0];
   }
 
   if (!variant) {
-    throw ApiError.badRequest('No available variant for this product.');
+    throw ApiError.badRequest('No active variant available for this product.');
   }
 
   const parsedQty = Math.max(1, Number(quantity) || 1);
@@ -308,6 +328,61 @@ export const updateCartItemQuantity = asyncHandler(async (req, res) => {
   const cartDetails = await calculateCartTotals(cart);
   return ApiResponse.success(res, { cart: cartDetails }, 'Cart quantity updated');
 });
+
+export const updateCartItemVariant = asyncHandler(async (req, res) => {
+  const { itemId } = req.params;
+  const { selectedSize, selectedColor } = req.body;
+
+  const cart = await findOrCreateCart(req, { createIfNotFound: false });
+  if (!cart || !Array.isArray(cart.items) || cart.items.length === 0) {
+    throw ApiError.notFound('Your cart is empty.');
+  }
+
+  const item = cart.items.find((i) => String(i._id) === itemId || i.variantSku === itemId);
+  if (!item) throw ApiError.notFound('That cart item no longer exists.');
+
+  const product = await Product.findById(item.product);
+  if (!product || product.status !== PRODUCT_STATUS.ACTIVE) {
+    throw ApiError.notFound('This product is no longer available.');
+  }
+
+  const current = product.variants.find((v) => v.sku === item.variantSku);
+  const size = selectedSize ?? current?.size;
+  const colour = selectedColor ?? current?.color;
+
+  // The combination has to exist. The cart can only offer what the product actually has, and a
+  // stale tab must not be able to move a line onto a variant that was never sold.
+  const target = product.variants.find(
+    (v) => v.isActive !== false && v.size === size && v.color === colour
+  );
+  const label = [size, colour].filter(Boolean).join(' / ') || 'That combination';
+  if (!target) {
+    throw ApiError.badRequest(`${label} is not available for this product.`);
+  }
+  if ((Number(target.stockQuantity) || 0) < item.quantity) {
+    throw ApiError.badRequest(`Only ${target.stockQuantity} left in ${label}.`);
+  }
+
+  // Moving onto a variant already in the cart merges the lines rather than duplicating them.
+  const duplicate = cart.items.find(
+    (i) => String(i._id) !== String(item._id) && i.variantSku === target.sku
+  );
+
+  if (duplicate) {
+    duplicate.quantity += item.quantity;
+    cart.items = cart.items.filter((i) => String(i._id) !== String(item._id));
+  } else {
+    item.variantSku = target.sku;
+    item.priceAtAddition = target.price;
+  }
+
+  cart.lastActiveAt = new Date();
+  await cart.save();
+
+  const cartDetails = await calculateCartTotals(cart);
+  return ApiResponse.success(res, { cart: cartDetails }, 'Cart variant updated');
+});
+
 
 export const removeFromCart = asyncHandler(async (req, res) => {
   const { itemId } = req.params;
