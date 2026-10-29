@@ -110,7 +110,30 @@ const calculateCartTotals = async (cart) => {
       productId: product._id,
       name: product.name,
       slug: product.slug,
-      image: product.images?.find((i) => i.isPrimary)?.url || product.images?.[0]?.url || '',
+      // The image follows the variant, not the product. A cart line for "90in Stealth Red" should
+      // show that wrap, not whichever photo happens to be the product's global primary. The media
+      // tab already records which images belong to which variant, so resolve it from there.
+      image: (() => {
+        const imgs = Array.isArray(product.images) ? product.images : [];
+        if (imgs.length === 0) return '';
+
+        const sku = String(variant.sku || '').trim().toUpperCase();
+        const variantId = String(variant._id || '');
+        const belongs = (list) =>
+          Array.isArray(list) &&
+          list.some((x) => String(x || '').trim().toUpperCase() === sku || String(x) === variantId);
+
+        // 1. the image explicitly marked as primary for this variant
+        const primaryForVariant = imgs.find((i) => belongs(i.primaryFor) || belongs(i.primaryForIds));
+        if (primaryForVariant?.url) return primaryForVariant.url;
+
+        // 2. any image scoped to this variant
+        const scoped = imgs.find((i) => belongs(i.variantSkus) || belongs(i.variantIds));
+        if (scoped?.url) return scoped.url;
+
+        // 3. nothing variant-specific — fall back to the product's own primary
+        return imgs.find((i) => i.isPrimary)?.url || imgs[0]?.url || '';
+      })(),
       variantSku: variant.sku,
       variantTitle: variant.title,
       selectedSize: variant.size || 'Standard',
@@ -238,7 +261,9 @@ export const addToCart = asyncHandler(async (req, res) => {
   }
 
   // 1. Direct SKU match if provided
-  let variant = variantSku ? product.variants.find((v) => v.sku === variantSku && v.isActive) : null;
+  let variant = variantSku
+    ? product.variants.find((v) => v.sku === variantSku && v.isActive !== false)
+    : null;
 
   // 2. Fallback: Match by size & color attributes
   if (!variant && (selectedSize || selectedColor)) {
@@ -246,13 +271,18 @@ export const addToCart = asyncHandler(async (req, res) => {
       (v) =>
         (!selectedSize || v.size === selectedSize || v.title?.includes(selectedSize)) &&
         (!selectedColor || v.color === selectedColor || v.title?.includes(selectedColor)) &&
-        v.isActive
+        v.isActive !== false
     );
   }
 
-  // 3. Fallback: First active variant
+  // No fallback. Picking "the first variant" is exactly how a cart ended up holding a variant
+  // the customer never chose — including an inactive one. If the request did not resolve, say so.
   if (!variant) {
-    variant = product.variants.find((v) => v.isActive) || product.variants[0];
+    const asked =
+      variantSku ||
+      [selectedSize, selectedColor].filter(Boolean).join(' / ') ||
+      'That combination';
+    throw ApiError.badRequest(`${asked} is not available for this product.`);
   }
 
   if (!variant) {

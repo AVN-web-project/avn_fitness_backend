@@ -33,6 +33,20 @@ const makeVariantSku = (productName, index) => {
  * shows a customer a saving they are not getting. A compareAtPrice of 0 or absent means
  * "no MRP" and is allowed.
  */
+/**
+ * The size chips on the PDP come from `product.sizes`, and the cart matches a line back to a
+ * variant by its size. Nothing used to keep that array in step with the variants themselves, so a
+ * size renamed in the admin left the chips showing the old labels — the PDP then offered "M" while
+ * every variant said "Medium", and the cart resolved the click to whichever variant happened to
+ * match loosely. That is how one combination ended up adding a different variant to the cart.
+ *
+ * Derive it on every write instead of trusting whatever the client sent.
+ */
+const sizesFromVariants = (variants = []) => {
+  const list = Array.isArray(variants) ? variants : [];
+  return [...new Set(list.map((v) => String(v?.size || '').trim()).filter(Boolean))];
+};
+
 const assertValidVariantPricing = (variants = []) => {
   for (const v of variants) {
     const label = v?.sku || v?.title || '(unnamed variant)';
@@ -264,6 +278,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     sizeGuide,
     careInstructions: careInstructions || '',
     variants: normalizedVariants,
+    // Kept in step with the variants, so the storefront's size chips always describe a real one.
+    sizes: sizesFromVariants(normalizedVariants),
     relatedProducts: relatedProducts || [],
     tags: tags || [],
     status: status || PRODUCT_STATUS.ACTIVE,
@@ -352,6 +368,9 @@ export const updateProduct = asyncHandler(async (req, res) => {
     });
 
     assertValidVariantPricing(product.variants);
+
+    // Rebuild the chip list from the variants that are actually being saved.
+    product.sizes = sizesFromVariants(product.variants);
   }
 
   await product.save();
