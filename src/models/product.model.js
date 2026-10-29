@@ -60,19 +60,44 @@ const variantSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { _id: true }
+  // The parent schema enables virtuals, but a sub-schema needs it too or the computed
+  // savedAmount / discountPercent below never reach the API response.
+  { _id: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
+
+// Money saved and the resulting price drop, derived once on the server so every client shows
+// the same figure. Previously each frontend computed its own percentage from compareAtPrice,
+// so a bad pair of prices produced a wrong badge with nothing to catch it.
+variantSchema.virtual('savedAmount').get(function () {
+  const price = Number(this.price) || 0;
+  const compareAt = Number(this.compareAtPrice) || 0;
+  if (compareAt <= price) return 0;
+  return compareAt - price;
+});
+
+variantSchema.virtual('discountPercent').get(function () {
+  const compareAt = Number(this.compareAtPrice) || 0;
+  const saved = this.savedAmount;
+  if (compareAt <= 0 || saved <= 0) return 0;
+  return Math.round((saved / compareAt) * 100);
+});
 
 const productImageSchema = new mongoose.Schema(
   {
     url: { type: String, required: true, trim: true },
     altText: { type: String, default: '', trim: true },
     isPrimary: { type: Boolean, default: false },
-    // Which variant(s) this image belongs to, keyed by SKU. An EMPTY array means the image is
-    // common to every variant — that is the "All" option in the admin Media tab. SKU is the key
-    // rather than the variant _id because SKU is mandatory on every variant and already unique,
-    // so a mapping survives a variant being re-saved, and can be set before the variant exists.
-    variantSkus: [{ type: String, trim: true, uppercase: true }],
+    // Variant subdocument _ids this image is shown for. Empty = shown for every variant.
+    // Keyed on _id, not SKU: a subdocument _id never changes, so reformatting or renaming a SKU
+    // cannot orphan the mapping the way a stored SKU string did.
+    variantIds: { type: [mongoose.Schema.Types.ObjectId], default: [] },
+    // Variant _ids this image is the index-0 image for on the PDP. Deliberately separate from
+    // isPrimary, which stays the single product-level thumbnail used by cards and cart lines.
+    primaryForIds: { type: [mongoose.Schema.Types.ObjectId], default: [] },
+    // Legacy SKU-keyed mapping. Still accepted on write (the admin sends SKUs, which are resolved
+    // against the same payload) and migrated into the id arrays below, then cleared.
+    variantSkus: { type: [String], default: [] },
+    primaryFor: { type: [String], default: [] },
   },
   { _id: true }
 );
@@ -235,6 +260,16 @@ productSchema.virtual('price').get(function () {
   return this.variants[0].price || 0;
 });
 
+// The best price drop across purchasable variants — what a product card should advertise.
+productSchema.virtual('priceDropPercent').get(function () {
+  const variants = Array.isArray(this.variants) ? this.variants : [];
+  return variants.reduce((best, v) => {
+    if (v.isActive === false) return best;
+    const pct = Number(v.discountPercent) || 0;
+    return pct > best ? pct : best;
+  }, 0);
+});
+
 // Virtual for compare-at price
 productSchema.virtual('compareAtPrice').get(function () {
   if (!this.variants || this.variants.length === 0) return 0;
@@ -245,6 +280,79 @@ productSchema.virtual('compareAtPrice').get(function () {
 productSchema.virtual('image').get(function () {
   const primary = this.images?.find((img) => img.isPrimary);
   return primary ? primary.url : (this.images?.[0]?.url || '');
+});
+
+/**
+ * Resolves image→variant mappings to subdocument _ids and enforces exactly one primary per
+ * variant, at the database boundary.
+ *
+ * Incoming arrays may hold _ids (new data), SKUs (the admin sends SKUs, and legacy documents hold
+ * them), or a mix. Both are resolved against this document's own variants, so a SKU reformat is a
+ * non-event: the ids stay put.
+ *
+ * First claim wins for a primary; any variant still unclaimed inherits the first image shown for
+ * it, then the first shared image. Legacy SKU arrays are cleared once migrated, so there is one
+ * source of truth.
+ */
+productSchema.pre('save', function enforceVariantPrimaries(next) {
+  const images = Array.isArray(this.images) ? this.images : [];
+  if (images.length === 0) return next();
+
+  const variants = Array.isArray(this.variants) ? this.variants : [];
+  const idOf = (x) => String(x || '').trim();
+
+  const idBySku = new Map();
+  const validIds = new Set();
+  variants.forEach((v) => {
+    const id = idOf(v?._id);
+    if (!id) return;
+    validIds.add(id);
+    const sku = String(v?.sku || '').trim().toUpperCase();
+    if (sku) idBySku.set(sku, id);
+  });
+
+  const resolve = (ids, skus) => {
+    const out = [
+      ...(Array.isArray(ids) ? ids.map(idOf) : []),
+      ...(Array.isArray(skus) ? skus.map((x) => idBySku.get(String(x || '').trim().toUpperCase())) : []),
+    ].filter((x) => x && validIds.has(x));
+    return [...new Set(out)];
+  };
+
+  const claimed = new Set();
+
+  images.forEach((img) => {
+    img.variantIds = resolve(img.variantIds, img.variantSkus);
+
+    // A primary must also be shown for that variant, and only one image may claim it.
+    img.primaryForIds = resolve(img.primaryForIds, img.primaryFor)
+      .filter((id) => img.variantIds.includes(id) && !claimed.has(id));
+    img.primaryForIds.forEach((id) => claimed.add(id));
+
+    img.variantSkus = [];
+    img.primaryFor = [];
+  });
+
+  variants.forEach((v) => {
+    const id = idOf(v?._id);
+    if (!id || claimed.has(id)) return;
+
+    let host = images.find((img) => (img.variantIds || []).includes(id));
+    if (!host) {
+      const shared = images.find((img) => (img.variantIds || []).length === 0);
+      if (shared) {
+        host = shared; // a shared image already covers every variant
+      } else {
+        // No image is scoped to this variant. A primary must also be shown for the variant it
+        // fronts, so scope the fallback host to it rather than leaving the pair inconsistent.
+        host = images[0];
+        host.variantIds = [...new Set([...(host.variantIds || []), id])];
+      }
+    }
+    host.primaryForIds = [...new Set([...(host.primaryForIds || []), id])];
+  });
+
+  return next();
 });
 
 export const Product = mongoose.model('Product', productSchema);

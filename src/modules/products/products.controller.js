@@ -27,29 +27,27 @@ const makeVariantSku = (productName, index) => {
 };
 
 /**
- * Scope images to variants. `variantSkus` empty (or absent) means the image is common to every
- * variant. Any SKU that does not belong to this product is dropped, so a mapping can never
- * outlive the variant it points at.
+ * Reject pricing that would advertise a discount which does not exist.
+ *
+ * The "SAVE n%" badge is derived from price vs compareAtPrice, so an inverted pair silently
+ * shows a customer a saving they are not getting. A compareAtPrice of 0 or absent means
+ * "no MRP" and is allowed.
  */
-const sanitizeImageVariantScope = (images, variants) => {
-  if (!Array.isArray(images)) return images;
-  const validSkus = new Set(
-    (Array.isArray(variants) ? variants : [])
-      .map((v) => String(v?.sku || '').trim().toUpperCase())
-      .filter(Boolean)
-  );
-  return images.map((img) => {
-    if (!img || typeof img !== 'object') return img;
-    const raw = Array.isArray(img.variantSkus) ? img.variantSkus : [];
-    const cleaned = [
-      ...new Set(
-        raw
-          .map((sku) => String(sku || '').trim().toUpperCase())
-          .filter((sku) => validSkus.has(sku))
-      ),
-    ];
-    return { ...img, variantSkus: cleaned };
-  });
+const assertValidVariantPricing = (variants = []) => {
+  for (const v of variants) {
+    const label = v?.sku || v?.title || '(unnamed variant)';
+    const price = Number(v?.price);
+    const compareAt = Number(v?.compareAtPrice);
+
+    if (!Number.isFinite(price) || price < 0) {
+      throw ApiError.badRequest(`Variant ${label}: price must be a number of 0 or more.`);
+    }
+    if (Number.isFinite(compareAt) && compareAt > 0 && compareAt < price) {
+      throw ApiError.badRequest(
+        `Variant ${label}: compare-at price (₹${compareAt}) cannot be lower than the selling price (₹${price}).`
+      );
+    }
+  }
 };
 
 export const getProducts = asyncHandler(async (req, res) => {
@@ -249,6 +247,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     v.sku = sku || makeVariantSku(name, i);
   });
 
+  assertValidVariantPricing(normalizedVariants);
+
   const primaryPrice = normalizedVariants[0]?.price || Number(price) || 499;
 
   const product = await Product.create({
@@ -261,10 +261,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     subCategory: subCategory || null,
     ageGroup: ageGroup || 'all',
     gender: gender || 'unisex',
-    images: sanitizeImageVariantScope(
-      images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
-      normalizedVariants
-    ),
+    images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
     specifications: specifications || [],
     sizeGuide,
     careInstructions: careInstructions || '',
@@ -356,12 +353,8 @@ export const updateProduct = asyncHandler(async (req, res) => {
       const sku = String(v?.sku || '').trim().toUpperCase();
       v.sku = sku || makeVariantSku(product.name, i);
     });
-  }
 
-  // Image→variant scope must be validated against the SKUs that actually exist, which is only
-  // known after the variant normalisation above.
-  if (Array.isArray(product.images)) {
-    product.images = sanitizeImageVariantScope(product.images, product.variants);
+    assertValidVariantPricing(product.variants);
   }
 
   await product.save();
