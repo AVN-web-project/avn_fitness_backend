@@ -27,6 +27,12 @@ const variantSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    specifications: [
+      {
+        key: { type: String, required: true, trim: true },
+        value: { type: String, required: true, trim: true },
+      },
+    ],
     resistanceLevel: {
       type: String,
       trim: true, // Light, Medium, Heavy, Extra Heavy, 10-20 lbs
@@ -170,12 +176,6 @@ const productSchema = new mongoose.Schema(
         label: { type: String },
         image: { type: String },
         type: { type: String },
-      },
-    ],
-    specifications: [
-      {
-        key: { type: String, required: true, trim: true },
-        value: { type: String, required: true, trim: true },
       },
     ],
     fullSpecs: {

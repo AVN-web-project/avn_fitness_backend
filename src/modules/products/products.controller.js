@@ -68,7 +68,7 @@ export const getProducts = asyncHandler(async (req, res) => {
 
   const filter = {};
 
-    // For staff/admin management, return all products (both active & inactive) unless specific status requested
+  // For staff/admin management, return all products (both active & inactive) unless specific status requested
   const isManagement = req.user || req.admin;
   if (isManagement) {
     if (status && status !== 'all') {
@@ -118,7 +118,7 @@ export const getProducts = asyncHandler(async (req, res) => {
       { description: searchRegex },
       { tagline: searchRegex },
       { tags: searchRegex },
-      { 'specifications.value': searchRegex },
+      { 'variants.specifications.value': searchRegex },
     ];
   }
 
@@ -141,7 +141,7 @@ export const getProducts = asyncHandler(async (req, res) => {
     sortOption = { createdAt: -1 };
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
+  const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [products, total] = await Promise.all([
@@ -210,7 +210,6 @@ export const createProduct = asyncHandler(async (req, res) => {
     ageGroup,
     gender,
     images,
-    specifications,
     sizeGuide,
     careInstructions,
     variants,
@@ -262,7 +261,6 @@ export const createProduct = asyncHandler(async (req, res) => {
     ageGroup: ageGroup || 'all',
     gender: gender || 'unisex',
     images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
-    specifications: specifications || [],
     sizeGuide,
     careInstructions: careInstructions || '',
     variants: normalizedVariants,
@@ -331,7 +329,6 @@ export const updateProduct = asyncHandler(async (req, res) => {
     'gender',
     'status',
     'images',
-    'specifications',
     'sizeGuide',
     'careInstructions',
     'variants',
