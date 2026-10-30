@@ -283,20 +283,25 @@ productSchema.virtual('image').get(function () {
 });
 
 /**
- * Resolves image→variant mappings to subdocument _ids and enforces exactly one primary per
- * variant, at the database boundary.
+ * Resolves image→variant mappings to subdocument _ids and enforces at most one explicit primary
+ * per variant, at the database boundary.
  *
  * Incoming arrays may hold _ids (new data), SKUs (the admin sends SKUs, and legacy documents hold
  * them), or a mix. Both are resolved against this document's own variants, so a SKU reformat is a
  * non-event: the ids stay put.
  *
- * First claim wins for a primary; any variant still unclaimed inherits the first image shown for
- * it, then the first shared image. Legacy SKU arrays are cleared once migrated, so there is one
- * source of truth.
+ * First claim wins for duplicate explicit primaries. Variants without an explicit primary remain
+ * unassigned so saving cannot silently broaden a shared image's primary mapping.
  */
 productSchema.pre('save', function enforceVariantPrimaries(next) {
   const images = Array.isArray(this.images) ? this.images : [];
   if (images.length === 0) return next();
+
+  let globalPrimaryAssigned = false;
+  images.forEach((img) => {
+    img.isPrimary = !!img.isPrimary && !globalPrimaryAssigned;
+    if (img.isPrimary) globalPrimaryAssigned = true;
+  });
 
   const variants = Array.isArray(this.variants) ? this.variants : [];
   const idOf = (x) => String(x || '').trim();
@@ -324,32 +329,16 @@ productSchema.pre('save', function enforceVariantPrimaries(next) {
   images.forEach((img) => {
     img.variantIds = resolve(img.variantIds, img.variantSkus);
 
-    // A primary must also be shown for that variant, and only one image may claim it.
-    img.primaryForIds = resolve(img.primaryForIds, img.primaryFor)
-      .filter((id) => img.variantIds.includes(id) && !claimed.has(id));
+    // An explicit primary also makes the image visible for that variant. Do not invent primary
+    // assignments for variants that have no explicit selection.
+    const explicitPrimaryIds = resolve(img.primaryForIds, img.primaryFor)
+      .filter((id) => !claimed.has(id));
+    img.variantIds = [...new Set([...(img.variantIds || []), ...explicitPrimaryIds])];
+    img.primaryForIds = explicitPrimaryIds;
     img.primaryForIds.forEach((id) => claimed.add(id));
 
     img.variantSkus = [];
     img.primaryFor = [];
-  });
-
-  variants.forEach((v) => {
-    const id = idOf(v?._id);
-    if (!id || claimed.has(id)) return;
-
-    let host = images.find((img) => (img.variantIds || []).includes(id));
-    if (!host) {
-      const shared = images.find((img) => (img.variantIds || []).length === 0);
-      if (shared) {
-        host = shared; // a shared image already covers every variant
-      } else {
-        // No image is scoped to this variant. A primary must also be shown for the variant it
-        // fronts, so scope the fallback host to it rather than leaving the pair inconsistent.
-        host = images[0];
-        host.variantIds = [...new Set([...(host.variantIds || []), id])];
-      }
-    }
-    host.primaryForIds = [...new Set([...(host.primaryForIds || []), id])];
   });
 
   return next();

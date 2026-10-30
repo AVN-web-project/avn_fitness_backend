@@ -18,15 +18,6 @@ const slugify = (value) => String(value || '')
   .replace(/^-+|-+$/g, '');
 
 /**
- * Every variant must carry a SKU. The admin UI deliberately no longer fabricates
- * them, so the backend is the single source of truth and fills any blank in.
- */
-const makeVariantSku = (productName, index) => {
-  const prefix = String(productName || 'AVN').replace(/[^a-zA-Z0-9]/g, '').substring(0, 4).toUpperCase() || 'AVN';
-  return `${prefix}-${index + 1}-${Date.now().toString().slice(-4)}`;
-};
-
-/**
  * Reject pricing that would advertise a discount which does not exist.
  *
  * The "SAVE n%" badge is derived from price vs compareAtPrice, so an inverted pair silently
@@ -61,6 +52,44 @@ const assertValidVariantPricing = (variants = []) => {
         `Variant ${label}: compare-at price (₹${compareAt}) cannot be lower than the selling price (₹${price}).`
       );
     }
+  }
+};
+
+const assertUniqueVariants = (variants = []) => {
+  const seenSkus = new Set();
+  const seenCombinations = new Set();
+
+  for (let index = 0; index < variants.length; index += 1) {
+    const variant = variants[index] || {};
+    const sku = String(variant.sku || '').trim().toUpperCase();
+    const combination = [
+      variant.title,
+      variant.size,
+      variant.color,
+    ].map((value) => String(value || '').trim().toLowerCase()).join('|');
+
+    if (sku && seenSkus.has(sku)) {
+      throw ApiError.badRequest(`Variant SKU code '${sku}' already exists.`);
+    }
+    if (sku) seenSkus.add(sku);
+
+    if (combination !== '||' && seenCombinations.has(combination)) {
+      throw ApiError.badRequest(`Variant ${index + 1} duplicates an existing title, size, and color combination.`);
+    }
+    if (combination !== '||') seenCombinations.add(combination);
+  }
+};
+
+const assertVariantSkuFormat = (variants = []) => {
+  for (let index = 0; index < variants.length; index += 1) {
+    const sku = String(variants[index]?.sku || '').trim().toUpperCase();
+    const parts = sku.split('-').filter(Boolean);
+    if (parts.length !== 5 || parts.some((part) => !/^[A-Z0-9]+$/.test(part))) {
+      throw ApiError.badRequest(
+        `Variant ${index + 1} SKU must follow BRAND-CATEGORY-PRODUCT-COLOR-SIZE format.`
+      );
+    }
+    variants[index].sku = sku;
   }
 };
 
@@ -254,12 +283,14 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   ];
 
-  // Fill in any SKU the admin left blank — never store a variant without one.
+  // Normalize before validating the required five-part SKU format.
   normalizedVariants.forEach((v, i) => {
     const sku = String(v?.sku || '').trim().toUpperCase();
-    v.sku = sku || makeVariantSku(name, i);
+    v.sku = sku;
   });
 
+  assertVariantSkuFormat(normalizedVariants);
+  assertUniqueVariants(normalizedVariants);
   assertValidVariantPricing(normalizedVariants);
 
   const primaryPrice = normalizedVariants[0]?.price || Number(price) || 499;
@@ -332,6 +363,10 @@ export const updateProduct = asyncHandler(async (req, res) => {
     throw ApiError.notFound('Product not found');
   }
 
+  const previousVariantSkus = new Set(
+    (product.variants || []).map((variant) => String(variant.sku || '').trim().toUpperCase()).filter(Boolean)
+  );
+
   // Update allowed fields
   const allowedUpdates = [
     'name',
@@ -360,14 +395,16 @@ export const updateProduct = asyncHandler(async (req, res) => {
     }
   });
 
-  // Same guarantee on update: no variant is ever saved without a SKU.
+  // Normalize before validating the required five-part SKU format.
   if (Array.isArray(product.variants)) {
-    product.variants.forEach((v, i) => {
+    product.variants.forEach((v) => {
       const sku = String(v?.sku || '').trim().toUpperCase();
-      v.sku = sku || makeVariantSku(product.name, i);
+      v.sku = sku;
     });
 
+    assertVariantSkuFormat(product.variants);
     assertValidVariantPricing(product.variants);
+    assertUniqueVariants(product.variants);
 
     // Rebuild the chip list from the variants that are actually being saved.
     product.sizes = sizesFromVariants(product.variants);
@@ -377,6 +414,10 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   // Dual-sync variants to inventory_m collection
   if (product.variants && product.variants.length > 0) {
+    const currentVariantSkus = product.variants
+      .map((variant) => String(variant.sku || '').trim().toUpperCase())
+      .filter(Boolean);
+
     for (const v of product.variants) {
       if (v.sku) {
         await Inventory.findOneAndUpdate(
@@ -396,6 +437,16 @@ export const updateProduct = asyncHandler(async (req, res) => {
           { upsert: true }
         );
       }
+    }
+
+    const removedVariantSkus = [...previousVariantSkus].filter(
+      (sku) => !currentVariantSkus.includes(sku)
+    );
+    if (removedVariantSkus.length > 0) {
+      await Inventory.deleteMany({
+        product: product._id,
+        sku: { $in: removedVariantSkus },
+      });
     }
   }
 
