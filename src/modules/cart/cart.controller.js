@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { Cart } from '../../models/cart.model.js';
 import { Product } from '../../models/product.model.js';
 import { Coupon } from '../../models/coupon.model.js';
+import { applyFestiveDiscount } from '../../utils/pricing.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -77,7 +78,9 @@ const calculateCartTotals = async (cart) => {
   for (const item of cart.items) {
     let product = item.product;
     if (!product || !product.variants) {
-      product = await Product.findById(item.product).select('name slug images variants status colors');
+      product = await Product.findById(item.product).select(
+        'name slug images variants status colors festiveDiscountPercent'
+      );
     }
     if (!product || product.status !== PRODUCT_STATUS.ACTIVE) {
       continue;
@@ -88,7 +91,9 @@ const calculateCartTotals = async (cart) => {
       continue;
     }
 
-    const itemPrice = variant.price;
+    // Occasion discount applies to what the customer pays, so the cart line carries the reduced
+    // price. The base discount is untouched — this is the same percentage the catalogue shows.
+    const itemPrice = applyFestiveDiscount(variant.price, product.festiveDiscountPercent);
     const itemSubtotal = itemPrice * item.quantity;
     subtotal += itemSubtotal;
 

@@ -1,5 +1,45 @@
 import mongoose from 'mongoose';
 
+const announcementMessageSchema = new mongoose.Schema(
+  {
+    message: {
+      type: String,
+      trim: true,
+      maxlength: 240,
+      required: true,
+    },
+    isEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    type: {
+      type: String,
+      enum: [
+        'festive',
+        'stock_clearance',
+        'seasonal_sale',
+        'special_offer',
+        'custom',
+      ],
+      default: 'custom',
+    },
+    order: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    startAt: {
+      type: Date,
+      default: null,
+    },
+    endAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  { _id: true }
+);
+
 const announcementStripSchema = new mongoose.Schema(
   {
     key: {
@@ -16,6 +56,10 @@ const announcementStripSchema = new mongoose.Schema(
       trim: true,
       maxlength: 240,
       default: '',
+    },
+    messages: {
+      type: [announcementMessageSchema],
+      default: [],
     },
     type: {
       type: String,

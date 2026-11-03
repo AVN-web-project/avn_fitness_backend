@@ -1,4 +1,5 @@
 import { Product } from '../../models/product.model.js';
+import { applyFestiveDiscount } from '../../utils/pricing.js';
 import { Inventory } from '../../models/inventory.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
@@ -23,7 +24,7 @@ export const getInventory = asyncHandler(async (req, res) => {
     Inventory.find({}).lean(),
     Product.find({})
       .populate('category', 'name slug')
-      .select('_id name slug category price status isAvailable isPublished variants images image updatedAt')
+              .select('_id name slug category price status isAvailable isPublished variants images image updatedAt festiveDiscountPercent')
       .lean(),
   ]);
 
@@ -62,8 +63,25 @@ export const getInventory = asyncHandler(async (req, res) => {
       color: inv.color && inv.color !== 'undefined' ? inv.color : 'Standard',
       stockQuantity: Number(inv.stockQuantity) || 0,
       lowStockThreshold: Number(inv.lowStockThreshold) || threshold,
-      price: Number(inv.price ?? variant?.price ?? prod?.price) || 0,
-      isAvailable: inv.isAvailable !== false && (variant ? variant.isActive !== false : true),
+              price: Number(inv.price ?? variant?.price ?? prod?.price) || 0,
+              // Display-only: what the storefront actually charges right now. Never persisted — the ledger
+              // keeps the base price so ending a sale leaves nothing stale behind.
+                      effectivePrice: applyFestiveDiscount(
+                        Number(inv.price ?? variant?.price ?? prod?.price) || 0,
+                        prod?.festiveDiscountPercent
+                      ),
+                      // Original "was" price and the total saving against it — base discount plus sale discount —
+                      // so the inventory table can show a final price and the combined percentage in one column.
+                      compareAtPrice: Number(variant?.compareAtPrice) || 0,
+                      totalDiscountPercent: (() => {
+                        const was = Number(variant?.compareAtPrice) || 0;
+                        const now = applyFestiveDiscount(
+                          Number(inv.price ?? variant?.price ?? prod?.price) || 0,
+                          prod?.festiveDiscountPercent
+                        );
+                        return was > now && was > 0 ? Math.round(((was - now) / was) * 100) : 0;
+                      })(),
+              isAvailable: inv.isAvailable !== false && (variant ? variant.isActive !== false : true),
       isPublished: prod?.isPublished,
       image: primaryImage(prod),
       images: prod?.images || [],
@@ -88,8 +106,21 @@ export const getInventory = asyncHandler(async (req, res) => {
         color: v.color && v.color !== 'undefined' ? v.color : 'Standard',
         stockQuantity: Number(v.stockQuantity !== undefined ? v.stockQuantity : v.stock) || 0,
         lowStockThreshold: threshold,
-        price: Number(v.price) || Number(prod.price) || 0,
-        isAvailable: prod.isAvailable !== false && v.isAvailable !== false && v.isActive !== false,
+                  price: Number(v.price) || Number(prod.price) || 0,
+                            effectivePrice: applyFestiveDiscount(
+                              Number(v.price) || Number(prod.price) || 0,
+                              prod.festiveDiscountPercent
+                            ),
+                            compareAtPrice: Number(v.compareAtPrice) || 0,
+                            totalDiscountPercent: (() => {
+                              const was = Number(v.compareAtPrice) || 0;
+                              const now = applyFestiveDiscount(
+                                Number(v.price) || Number(prod.price) || 0,
+                                prod.festiveDiscountPercent
+                              );
+                              return was > now && was > 0 ? Math.round(((was - now) / was) * 100) : 0;
+                            })(),
+                  isAvailable: prod.isAvailable !== false && v.isAvailable !== false && v.isActive !== false,
         isPublished: prod.isPublished,
         image: primaryImage(prod),
         images: prod.images || [],

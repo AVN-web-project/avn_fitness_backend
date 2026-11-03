@@ -186,6 +186,18 @@ const productSchema = new mongoose.Schema(
       chartUrl: { type: String, trim: true },
       instructions: { type: String, trim: true },
     },
+    // Occasion discount, layered ON TOP of the base discount. The base discount — the gap between
+    // compareAtPrice and price — is untouched; this is a second percentage applied for the duration
+    // of a festive or clearance push.
+    //
+    // Clamped on save so no variant falls below MIN_PRODUCT_PRICE (see utils/pricing.js). 90 is a
+    // hard ceiling on top of that, so a bad document can never make a product nearly free.
+    festiveDiscountPercent: {
+      type: Number,
+      default: 0,
+      min: [0, 'Festive discount cannot be negative'],
+      max: [90, 'Festive discount cannot exceed 90%'],
+    },
     careInstructions: {
       type: mongoose.Schema.Types.Mixed,
       default: '',

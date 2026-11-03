@@ -4,6 +4,7 @@ import { Order } from '../../models/order.model.js';
 import { Product } from '../../models/product.model.js';
 import { Payment } from '../../models/payment.model.js';
 import { Coupon } from '../../models/coupon.model.js';
+import { applyFestiveDiscount } from '../../utils/pricing.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -97,7 +98,9 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       throw ApiError.badRequest(`Only ${onHand} left of "${label}". Please reduce the quantity.`);
     }
 
-    const itemSubtotal = variant.price * item.quantity;
+    // Must match the cart exactly: the order is charged at the festive-adjusted price.
+    const effectivePrice = applyFestiveDiscount(variant.price, product.festiveDiscountPercent);
+    const itemSubtotal = effectivePrice * item.quantity;
     subtotal += itemSubtotal;
 
     orderItems.push({
@@ -107,7 +110,7 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       name: product.name,
       variantTitle: variant.title,
       image: product.images.find((i) => i.isPrimary)?.url || product.images[0]?.url || '',
-      price: variant.price,
+      price: effectivePrice,
       quantity: item.quantity,
       subtotal: itemSubtotal,
     });

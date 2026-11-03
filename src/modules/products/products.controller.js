@@ -47,10 +47,18 @@ const assertValidVariantPricing = (variants = []) => {
     if (!Number.isFinite(price) || price < 0) {
       throw ApiError.badRequest(`Variant ${label}: price must be a number of 0 or more.`);
     }
-    if (Number.isFinite(compareAt) && compareAt > 0 && compareAt < price) {
-      throw ApiError.badRequest(
-        `Variant ${label}: compare-at price (₹${compareAt}) cannot be lower than the selling price (₹${price}).`
-      );
+        // A product cannot be listed without an MRP. Without one there is no "was" price to discount
+        // from, the storefront badge has nothing to compute against, and the inventory page shows a ₹0
+        // base price next to a real selling price.
+        if (!Number.isFinite(compareAt) || compareAt <= 0) {
+          throw ApiError.badRequest(
+            `Variant ${label}: MRP (compare-at price) is required and must be greater than 0.`
+          );
+        }
+        if (compareAt < price) {
+          throw ApiError.badRequest(
+            `Variant ${label}: compare-at price (₹${compareAt}) cannot be lower than the selling price (₹${price}).`
+          );
     }
   }
 };
