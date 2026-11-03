@@ -24,6 +24,7 @@ import couponRoutes from './modules/coupons/coupons.routes.js';
 import reviewRoutes from './modules/reviews/reviews.routes.js';
 import supportRoutes from './modules/support/support.routes.js';
 import inventoryRoutes from './modules/inventory/inventory.routes.js';
+import marketingRoutes from './modules/marketing/marketing.routes.js';
 
 const app = express();
 
@@ -128,6 +129,7 @@ app.use(`${env.API_PREFIX}/coupons`, couponRoutes);
 app.use(`${env.API_PREFIX}/reviews`, reviewRoutes);
 app.use(`${env.API_PREFIX}/support`, supportRoutes);
 app.use(`${env.API_PREFIX}/inventory`, inventoryRoutes);
+app.use(`${env.API_PREFIX}/marketing`, marketingRoutes);
 
 // Catch 404 & Central error handling
 app.use(notFoundHandler);

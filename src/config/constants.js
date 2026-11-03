@@ -221,6 +221,7 @@ export const ROLE_PERMISSIONS = {
     'reviews.view',
     'reviews.moderate',
     'activity_logs.view_scoped',
+    'marketing.announcement.edit',
   ],
   [ROLES.FINANCE_MANAGER]: [
     'payments.view',
