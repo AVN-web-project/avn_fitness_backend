@@ -8,6 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node scripts/seed.js",
+    "populate:size-guides": "node scripts/populate_size_guides.js",
     "test": "node tests/e2e_test_suite.js"
   },
   "keywords": [

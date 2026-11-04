@@ -45,6 +45,15 @@ const variantSchema = new mongoose.Schema(
       type: Number,
       default: 1, // Single, Pack of 2, Set of 5
     },
+    volume: {
+      type: String,
+      trim: true,
+    },
+    volumeUnit: {
+      type: String,
+      enum: ['ml', 'L'],
+      trim: true,
+    },
     price: {
       type: Number,
       required: [true, 'Variant price is required'],
@@ -185,6 +194,48 @@ const productSchema = new mongoose.Schema(
     sizeGuide: {
       chartUrl: { type: String, trim: true },
       instructions: { type: String, trim: true },
+      measurementType: {
+        type: String,
+        enum: ['supportGear', 'shaker', 'apparel', 'bottle', 'accessory', 'other'],
+        default: 'supportGear',
+      },
+      unit: {
+        type: String,
+        enum: ['cm', 'inches'],
+        default: 'cm',
+      },
+      volumeUnit: {
+        type: String,
+        enum: ['ml', 'L'],
+        default: 'ml',
+      },
+      notes: { type: String, trim: true, default: '' },
+      rows: [
+        {
+          size: { type: String, trim: true, required: true },
+          fit: { type: String, trim: true, default: '' },
+          volume: { type: String, trim: true, default: '' },
+          volumeUnit: { type: String, enum: ['ml', 'L', ''], default: '' },
+          chest: { type: String, trim: true, default: '' },
+          waist: { type: String, trim: true, default: '' },
+          hip: { type: String, trim: true, default: '' },
+          length: { type: String, trim: true, default: '' },
+          shoulder: { type: String, trim: true, default: '' },
+          sleeveLength: { type: String, trim: true, default: '' },
+          width: { type: String, trim: true, default: '' },
+          height: { type: String, trim: true, default: '' },
+          diameter: { type: String, trim: true, default: '' },
+          weight: { type: String, trim: true, default: '' },
+          weightUnit: { type: String, trim: true, default: '' },
+          material: { type: String, trim: true, default: '' },
+          customFields: [
+            {
+              label: { type: String, trim: true },
+              value: { type: String, trim: true },
+            },
+          ],
+        },
+      ],
     },
     // Occasion discount, layered ON TOP of the base discount. The base discount — the gap between
     // compareAtPrice and price — is untouched; this is a second percentage applied for the duration

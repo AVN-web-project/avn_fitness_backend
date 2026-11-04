@@ -265,6 +265,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     careInstructions,
     variants,
     relatedProducts,
+    festiveDiscountPercent,
     tags,
     status,
     price,
@@ -320,6 +321,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     // Kept in step with the variants, so the storefront's size chips always describe a real one.
     sizes: sizesFromVariants(normalizedVariants),
     relatedProducts: relatedProducts || [],
+    festiveDiscountPercent: Math.min(90, Math.max(0, Number(festiveDiscountPercent) || 0)),
     tags: tags || [],
     status: status || PRODUCT_STATUS.ACTIVE,
     price: primaryPrice,
@@ -392,6 +394,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
     'careInstructions',
     'variants',
     'relatedProducts',
+    'festiveDiscountPercent',
     'tags',
     'price',
     'pricing',
