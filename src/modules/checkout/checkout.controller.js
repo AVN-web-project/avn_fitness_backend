@@ -50,15 +50,23 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
     selectedAddress = req.user.addresses.find((a) => a.isDefault) || req.user.addresses[0];
   }
 
+  if (!selectedAddress) {
+    throw ApiError.badRequest('Please select or add a delivery address.');
+  }
+
   const resolvedAddress = {
-    fullName: selectedAddress?.fullName || req.user.name || 'Customer',
-    phone: selectedAddress?.phone || req.user.phone || '9876543210',
-    street: selectedAddress?.street || 'Default Street',
-    city: selectedAddress?.city || 'Default City',
-    state: selectedAddress?.state || 'Default State',
-    pincode: selectedAddress?.pincode || '110001',
-    country: selectedAddress?.country || 'India',
+    fullName: selectedAddress.fullName || req.user.name || 'Customer',
+    phone: selectedAddress.phone || req.user.phone || '9876543210',
+    street: selectedAddress.street || '',
+    city: selectedAddress.city || '',
+    state: selectedAddress.state || '',
+    pincode: selectedAddress.pincode || '',
+    country: selectedAddress.country || 'India',
   };
+
+  if (!resolvedAddress.state.trim()) {
+    throw ApiError.badRequest('State is required in your delivery address.');
+  }
 
   // ---------------------------------------------------------------------------
   // SERVER-AUTHORITATIVE PRICING
@@ -109,7 +117,13 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
       variantSku: variant.sku,
       name: product.name,
       variantTitle: variant.title,
-      image: product.images.find((i) => i.isPrimary)?.url || product.images[0]?.url || '',
+      // Variant-specific image when one is mapped, otherwise the first image.
+      image:
+        product.images.find((i) =>
+          (i.primaryForIds || []).some((id) => String(id) === String(variant._id))
+        )?.url ||
+        product.images[0]?.url ||
+        '',
       price: effectivePrice,
       quantity: item.quantity,
       subtotal: itemSubtotal,

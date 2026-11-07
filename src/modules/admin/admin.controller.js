@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Admin } from '../../models/admin.model.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { ActivityLog } from '../../models/activityLog.model.js';
 import { Order } from '../../models/order.model.js';
@@ -288,32 +289,75 @@ export const toggleUserStatus = asyncHandler(async (req, res) => {
 /**
  * Staff Directory & Management
  */
+
 export const getStaff = asyncHandler(async (req, res) => {
   const { role, search, page = 1, limit = 50 } = req.query;
-  const filter = {};
 
-  if (role) filter.role = role;
+  const staffFilter = {};
+  const adminFilter = {};
+
+  if (role) {
+    staffFilter.role = role;
+    adminFilter.role = role;
+  }
+
   if (search) {
-    filter.$or = [
+    const searchConditions = [
       { name: { $regex: search, $options: 'i' } },
       { email: { $regex: search, $options: 'i' } },
       { employeeId: { $regex: search, $options: 'i' } },
     ];
+
+    staffFilter.$or = searchConditions;
+    adminFilter.$or = searchConditions;
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 50 });
+  const { page: pageNum, limit: limitNum } = parsePagination(
+    { page, limit },
+    { defaultLimit: 50 }
+  );
+
+  // Fetch both collections independently.
+  const [staffMembers, admins] = await Promise.all([
+    Staff.find(staffFilter)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .lean(),
+
+    Admin.find(adminFilter)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .lean(),
+  ]);
+
+  // Identify the source of each account.
+  const combinedUsers = [
+    ...admins.map((admin) => ({
+      ...admin,
+      accountType: 'admin',
+    })),
+
+    ...staffMembers.map((member) => ({
+      ...member,
+      accountType: 'staff',
+    })),
+  ];
+
+  // Sort both collections together.
+  combinedUsers.sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+  );
+
+  const total = combinedUsers.length;
   const skip = (pageNum - 1) * limitNum;
 
-  const [staff, total] = await Promise.all([
-    Staff.find(filter).select('-password').sort({ createdAt: -1 }).skip(skip).limit(limitNum).lean(),
-    Staff.countDocuments(filter),
-  ]);
+  const users = combinedUsers.slice(skip, skip + limitNum);
 
   return ApiResponse.success(
     res,
     {
-      users: staff,
-      staff,
+      users,
+      staff: users,
       pagination: {
         total,
         page: pageNum,
@@ -321,9 +365,10 @@ const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { de
         totalPages: Math.ceil(total / limitNum),
       },
     },
-    'Staff accounts retrieved'
+    'Staff and admin accounts retrieved successfully'
   );
 });
+
 
 export const createStaff = asyncHandler(async (req, res) => {
   const { name, email, password, role, phone, permissions } = req.body;

@@ -250,22 +250,51 @@ export const getProfile = asyncHandler(async (req, res) => {
  */
 export const updateProfile = asyncHandler(async (req, res) => {
   const { name, phone } = req.body;
-  let account = await Staff.findById(req.user._id);
+
+  let account = await Admin.findById(req.user._id);
+
+  if (!account) {
+    account = await Staff.findById(req.user._id);
+  }
+
   if (!account) {
     account = await User.findById(req.user._id);
   }
 
-  if (!account) throw ApiError.notFound('Account not found');
+  if (!account) {
+    throw ApiError.notFound('Account not found');
+  }
 
-  if (name) account.name = name;
-  if (phone !== undefined) account.phone = phone;
+  if (name !== undefined) {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      throw ApiError.badRequest('Name cannot be empty.');
+    }
+
+    account.name = trimmedName;
+  }
+
+  if (phone !== undefined) {
+    const normalizedPhone = phone.trim();
+
+    if (normalizedPhone && !/^[6-9]\d{9}$/.test(normalizedPhone)) {
+      throw ApiError.badRequest('Please enter a valid 10-digit mobile number.');
+    }
+
+    account.phone = normalizedPhone;
+  }
 
   await account.save();
 
   const accountObj = account.toObject();
   delete accountObj.password;
 
-  return ApiResponse.success(res, { user: accountObj }, 'Profile updated successfully');
+  return ApiResponse.success(
+    res,
+    { user: accountObj },
+    'Profile updated successfully'
+  );
 });
 
 /**

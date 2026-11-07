@@ -314,7 +314,7 @@ export const createProduct = asyncHandler(async (req, res) => {
     subCategory: subCategory || null,
     ageGroup: ageGroup || 'all',
     gender: gender || 'unisex',
-    images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name, isPrimary: true }],
+    images: images && images.length > 0 ? images : [{ url: '/placeholder-product.png', altText: name }],
     sizeGuide,
     careInstructions: careInstructions || '',
     variants: normalizedVariants,

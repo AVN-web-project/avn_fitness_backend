@@ -137,7 +137,7 @@ const calculateCartTotals = async (cart) => {
         if (scoped?.url) return scoped.url;
 
         // 3. nothing variant-specific — fall back to the product's own primary
-        return imgs.find((i) => i.isPrimary)?.url || imgs[0]?.url || '';
+                return imgs[0]?.url || '';
       })(),
       variantSku: variant.sku,
       variantTitle: variant.title,

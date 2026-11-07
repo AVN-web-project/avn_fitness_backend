@@ -39,8 +39,8 @@ export const getInventory = asyncHandler(async (req, res) => {
     rows.push(row);
   };
 
-  const primaryImage = (prod) =>
-    (prod?.images && prod.images.find((i) => i.isPrimary)?.url) ||
+    const primaryImage = (prod) =>
+      (prod?.images && prod.images[0]?.url) ||
     (prod?.images && prod.images[0]?.url) ||
     prod?.image ||
     null;

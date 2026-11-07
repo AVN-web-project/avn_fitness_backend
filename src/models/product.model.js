@@ -341,8 +341,42 @@ productSchema.virtual('compareAtPrice').get(function () {
 
 // Virtual for primary image URL (avoids storing duplicate image field in MongoDB)
 productSchema.virtual('image').get(function () {
-  const primary = this.images?.find((img) => img.isPrimary);
-  return primary ? primary.url : (this.images?.[0]?.url || '');
+  const images = Array.isArray(this.images) ? this.images : [];
+  if (images.length === 0) return '';
+
+  // Card thumbnails follow the variant, using the same matching a cart line does. The order is
+  // chosen so an image the admin explicitly made a primary is never skipped:
+  //   1. the primary chosen for the product's first variant
+  //   2. the primary chosen for ANY variant (the admin's choice beats an unmapped image)
+  //   3. an image merely scoped to the first variant
+  //   4. the first image
+  const variant = (this.variants || [])[0];
+  const sku = String(variant?.sku || '').trim().toUpperCase();
+  const variantId = String(variant?._id || '');
+
+  const asId = (x) => String(x || '').trim();
+  const belongs = (list) =>
+    Array.isArray(list) &&
+    list.some(
+      (x) =>
+        (sku && asId(x).toUpperCase() === sku) ||
+        (variantId && asId(x) === variantId)
+    );
+  const hasPrimary = (img) =>
+    (Array.isArray(img.primaryForIds) && img.primaryForIds.length > 0) ||
+    (Array.isArray(img.primaryFor) && img.primaryFor.length > 0);
+
+  const forFirstVariant = images.find((i) => belongs(i.primaryFor) || belongs(i.primaryForIds));
+  if (forFirstVariant?.url) return forFirstVariant.url;
+
+  const anyPrimary = images.find(hasPrimary);
+  if (anyPrimary?.url) return anyPrimary.url;
+
+  const scoped = images.find((i) => belongs(i.variantSkus) || belongs(i.variantIds));
+  if (scoped?.url) return scoped.url;
+
+  const legacyPrimary = images.find((img) => img.isPrimary);
+  return legacyPrimary?.url || images[0]?.url || '';
 });
 
 /**
