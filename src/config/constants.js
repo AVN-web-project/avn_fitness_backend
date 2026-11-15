@@ -36,7 +36,6 @@ export const ORDER_STATUS = Object.freeze({
   PAID_CONFIRMED: 'paid_confirmed',
   PROCESSING: 'processing',
   SHIPPED: 'shipped',
-  OUT_FOR_DELIVERY: 'out_for_delivery',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
   RETURN_REQUESTED: 'return_requested',
@@ -203,6 +202,9 @@ export const ROLE_PERMISSIONS = {
     'returns.process',
     'refunds.view',
     'activity_logs.view_scoped',
+    // Delivery coverage belongs with fulfilment: which pincodes you ship to, COD and ETA.
+    'serviceability.view',
+    'serviceability.edit',
   ],
   [ROLES.CUSTOMER_SUPPORT]: [
     'support.view',

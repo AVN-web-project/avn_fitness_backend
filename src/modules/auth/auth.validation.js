@@ -66,20 +66,13 @@ export const addressSchema = z.object({
     fullName: z.string().min(2, 'Full name is required'),
     phone: indianPhone,
     street: z.string().min(5, 'Street address is required'),
+    // Optional and free-form: it is filled from the pincode master, and zod strips unknown keys —
+    // without this the field would never reach the controller.
+    district: z.string().trim().max(120).optional().default(''),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
     pincode: indianPincode,
     country: z.string().optional().default('India'),
-    // Map coordinates pinned in the address form. Without this the schema strips the field and
-    // `req.body` is replaced with the parsed object — so the pin never reached the controller and
-    // every saved address lost its coordinates.
-    location: z
-      .object({
-        latitude: z.number().min(-90).max(90),
-        longitude: z.number().min(-180).max(180),
-      })
-      .nullable()
-      .optional(),
     isDefault: z.boolean().optional().default(false),
   }),
 });

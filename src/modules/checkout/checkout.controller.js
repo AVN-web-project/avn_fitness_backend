@@ -5,6 +5,7 @@ import { Product } from '../../models/product.model.js';
 import { Payment } from '../../models/payment.model.js';
 import { Coupon } from '../../models/coupon.model.js';
 import { applyFestiveDiscount } from '../../utils/pricing.js';
+import { resolveServiceability } from '../serviceability/serviceability.controller.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
@@ -66,6 +67,32 @@ export const createCheckoutOrder = asyncHandler(async (req, res) => {
 
   if (!resolvedAddress.state.trim()) {
     throw ApiError.badRequest('State is required in your delivery address.');
+  }
+
+  // ---------------------------------------------------------------------------
+  // SERVICEABILITY GATE
+  // Runs before any pricing or order creation. The address form also checks this, but that check
+  // is advisory: a saved address may predate a rule change, and the request body cannot be
+  // trusted. This is the only place the answer actually decides whether an order exists.
+  // ---------------------------------------------------------------------------
+  const serviceability = await resolveServiceability({
+    pincode: resolvedAddress.pincode,
+    city: resolvedAddress.city,
+    state: resolvedAddress.state,
+  });
+
+  if (!serviceability.serviceable) {
+    throw ApiError.badRequest(
+      serviceability.knownPincode
+        ? `We don't deliver to pincode ${resolvedAddress.pincode} yet. Please choose a different address.`
+        : `Pincode ${resolvedAddress.pincode} is not one we can deliver to. Please check it and try again.`
+    );
+  }
+
+  if (isCod && !serviceability.codAvailable) {
+    throw ApiError.badRequest(
+      `Cash on delivery is not available for pincode ${resolvedAddress.pincode}. Please pay online.`
+    );
   }
 
   // ---------------------------------------------------------------------------
