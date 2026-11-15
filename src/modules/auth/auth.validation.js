@@ -70,6 +70,16 @@ export const addressSchema = z.object({
     state: z.string().min(2, 'State is required'),
     pincode: indianPincode,
     country: z.string().optional().default('India'),
+    // Map coordinates pinned in the address form. Without this the schema strips the field and
+    // `req.body` is replaced with the parsed object — so the pin never reached the controller and
+    // every saved address lost its coordinates.
+    location: z
+      .object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      })
+      .nullable()
+      .optional(),
     isDefault: z.boolean().optional().default(false),
   }),
 });

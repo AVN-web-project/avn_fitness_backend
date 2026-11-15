@@ -4,7 +4,7 @@ import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { ORDER_STATUS, ROLES, PAYMENT_STATUS } from '../../config/constants.js';
-import { sendOrderCancellationEmail } from '../../utils/email.service.js';
+import { sendOrderCancellationEmail, sendOrderStatusUpdateEmail } from '../../utils/email.service.js';
 import { isObjectId } from '../../utils/ids.js';
 import { parsePagination } from '../../utils/pagination.js';
 
@@ -249,6 +249,20 @@ export const requestOrderReturn = asyncHandler(async (req, res) => {
   });
 
   await order.save();
+
+  // Notify customer that their return request has been recorded
+  try {
+    const customerEmail = req.user?.email;
+    if (customerEmail) {
+      await sendOrderStatusUpdateEmail(customerEmail, order, {
+        previousStatus: 'delivered',
+        newStatus: ORDER_STATUS.RETURN_REQUESTED,
+        note: `Return request submitted: ${trimmedReason}`,
+      });
+    }
+  } catch (emailErr) {
+    console.warn('⚠️ Return request status update email notification failed:', emailErr.message);
+  }
 
   return ApiResponse.success(res, { order }, 'Return request submitted successfully. Our operations team will review it.');
 });

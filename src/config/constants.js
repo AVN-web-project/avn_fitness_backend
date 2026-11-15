@@ -36,6 +36,7 @@ export const ORDER_STATUS = Object.freeze({
   PAID_CONFIRMED: 'paid_confirmed',
   PROCESSING: 'processing',
   SHIPPED: 'shipped',
+  OUT_FOR_DELIVERY: 'out_for_delivery',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled',
   RETURN_REQUESTED: 'return_requested',

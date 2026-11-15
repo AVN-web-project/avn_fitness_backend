@@ -377,6 +377,8 @@ const buildBrandShell = ({ badgeText, badgeTone, heading, intro, bodyHtml, hasLo
   const tones = {
     green: { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.35)', fg: '#10B981' },
     red: { bg: 'rgba(255,30,39,0.12)', border: 'rgba(255,30,39,0.35)', fg: '#FF1E27' },
+    blue: { bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.35)', fg: '#3B82F6' },
+    amber: { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.35)', fg: '#F59E0B' },
   };
   const tone = tones[badgeTone] || tones.green;
 
@@ -855,5 +857,301 @@ export async function sendReturnStatusEmail(email, order) {
     console.warn('Return status email SMTP dispatch fallback:', error.message);
   }
 
+  return { success: true, method: 'console' };
+}
+
+// ---------------------------------------------------------------------------
+// Order Status Update Notification Email
+// Sent whenever an order's status changes throughout its fulfillment lifecycle.
+// Includes full order details, current status message, tracking info, items, and totals.
+// ---------------------------------------------------------------------------
+export async function sendOrderStatusUpdateEmail(email, order, options = {}) {
+  if (!email) {
+    console.warn('⚠️ No email provided for order status update notification.');
+    return { success: false, reason: 'missing_email' };
+  }
+
+  const orderNumber = order?.orderNumber || order?._id || 'ORD-UNKNOWN';
+  const newStatus = String(options.newStatus || order?.orderStatus || 'processing').toLowerCase().trim();
+  const note = options.note || '';
+  const carrier = options.carrier || order?.shipmentInfo?.carrier || '';
+  const trackingNumber = options.trackingNumber || order?.shipmentInfo?.trackingNumber || '';
+  const estimatedDeliveryDate = options.estimatedDeliveryDate || order?.shipmentInfo?.estimatedDeliveryDate;
+
+  const items = Array.isArray(order?.items) ? order.items : [];
+  const shippingAddress = order?.shippingAddress || {};
+  const pricing = order?.pricing || {};
+  const total = pricing?.totalPayable ?? 0;
+  const subtotal = pricing?.subtotal ?? total;
+  const discount = pricing?.discount ?? 0;
+  const shippingFee = pricing?.shippingFee ?? 0;
+  const codSurcharge = pricing?.codSurcharge ?? 0;
+
+  const provider = (order?.paymentInfo?.provider || order?.paymentMethod || 'COD').toUpperCase();
+  const isCod = provider.includes('COD') || provider.includes('CASH');
+  const rawPaymentStatus = String(order?.paymentInfo?.paymentStatus || order?.paymentStatus || (isCod ? 'pending' : 'captured')).toLowerCase();
+  const isPaymentPending = isCod ? rawPaymentStatus !== 'captured' : (rawPaymentStatus === 'pending');
+
+  const attachments = [];
+  const thumbDir = path.resolve(__dirname, '../assets/thumbnails');
+  const logoPath = path.join(thumbDir, 'avn-logo.png');
+  const hasLogoAttachment = fs.existsSync(logoPath);
+  if (hasLogoAttachment) {
+    attachments.push({ filename: 'avn-logo.png', path: logoPath, cid: 'avn_brand_logo', contentDisposition: 'inline' });
+  }
+
+  const block = buildOrderItemsBlock(items, 'status_thumb');
+  attachments.push(...block.attachments);
+
+  const formatStatus = (s) => {
+    const map = {
+      'pending_payment': 'Pending Payment',
+      'paid_confirmed': 'Confirmed',
+      'paid': 'Paid',
+      'processing': 'Processing',
+      'shipped': 'Shipped',
+      'out_for_delivery': 'Out for Delivery',
+      'out for delivery': 'Out for Delivery',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled',
+      'return_requested': 'Return Requested',
+      'returned': 'Returned',
+      'refunded': 'Refunded',
+      'payment_failed': 'Payment Failed',
+    };
+    return map[s] || (s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' '));
+  };
+
+  const readableStatus = formatStatus(newStatus);
+
+  const getStatusMeta = (status) => {
+    switch (status) {
+      case 'paid_confirmed':
+      case 'paid':
+        return {
+          badgeText: 'Payment Confirmed',
+          badgeTone: 'green',
+          heading: 'Your Order Is Confirmed!',
+          intro: `Payment for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been successfully received. Your gear is now queued for warehouse fulfillment.`,
+          message: note || 'Thank you! Our warehouse team is preparing your equipment for dispatch.',
+        };
+      case 'processing':
+        return {
+          badgeText: 'Processing In Warehouse',
+          badgeTone: 'blue',
+          heading: 'Your Gear Is Being Prepared',
+          intro: `Order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> is currently being picked, inspected, and packed for shipment.`,
+          message: note || 'All items undergo strict quality inspection before being sealed and dispatched.',
+        };
+      case 'shipped':
+        return {
+          badgeText: 'Shipped & In Transit',
+          badgeTone: 'blue',
+          heading: 'Your Order Has Shipped!',
+          intro: `Exciting news! Order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been dispatched and is currently in transit to your address.`,
+          message: note || (carrier && trackingNumber ? `Dispatched via ${carrier} (Tracking: ${trackingNumber}).` : 'Your package is on its way to your destination.'),
+        };
+      case 'out_for_delivery':
+      case 'out for delivery':
+        return {
+          badgeText: 'Out For Delivery',
+          badgeTone: 'amber',
+          heading: 'Out For Delivery Today!',
+          intro: `Your package for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> is out with our courier partner for delivery today!`,
+          message: note || 'Please keep your phone handy. Our delivery executive will attempt delivery shortly.',
+        };
+      case 'delivered':
+        return {
+          badgeText: 'Delivered',
+          badgeTone: 'green',
+          heading: 'Your Order Has Been Delivered!',
+          intro: `Order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been successfully delivered.`,
+          message: note || 'Thank you for choosing AVN Athletics! We hope you love your new gear. Feel free to leave a product review.',
+        };
+      case 'cancelled':
+        return {
+          badgeText: 'Order Cancelled',
+          badgeTone: 'red',
+          heading: 'Your Order Has Been Cancelled',
+          intro: `Order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been marked as cancelled.`,
+          message: note || 'If you did not request this cancellation or have any questions, please contact our support team immediately.',
+        };
+      case 'return_requested':
+        return {
+          badgeText: 'Return Requested',
+          badgeTone: 'amber',
+          heading: 'Return Request Received',
+          intro: `We have received your return request for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong>.`,
+          message: note || 'Our operations team will review your request within 24-48 business hours.',
+        };
+      case 'returned':
+        return {
+          badgeText: 'Return Received',
+          badgeTone: 'blue',
+          heading: 'Return Received & Verified',
+          intro: `The returned items for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> have been received and verified by our warehouse.`,
+          message: note || 'Your return is now being processed for final resolution or refund.',
+        };
+      case 'refunded':
+        return {
+          badgeText: 'Refund Completed',
+          badgeTone: 'green',
+          heading: 'Your Refund Has Been Processed',
+          intro: `The refund for order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> has been completed.`,
+          message: note || 'Please allow 5-7 business days for the funds to reflect in your account.',
+        };
+      default:
+        return {
+          badgeText: readableStatus,
+          badgeTone: 'blue',
+          heading: `Order Status: ${readableStatus}`,
+          intro: `Your order <strong style="color:#FF1E27;font-family:monospace;">#${orderNumber}</strong> status is now <strong>${readableStatus}</strong>.`,
+          message: note || `Your order status has transitioned to ${readableStatus}.`,
+        };
+    }
+  };
+
+  const meta = getStatusMeta(newStatus);
+
+  const bodyHtml = `
+    <!-- Status Update Notice Box -->
+    <div style="padding:20px 24px 0 24px;">
+      <div style="padding:16px;background-color:#171822;border:1px solid #252634;border-radius:12px;">
+        <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#FF1E27;margin-bottom:6px;">
+          STATUS UPDATE
+        </div>
+        <div style="font-size:13px;color:#ffffff;line-height:1.5;">
+          ${meta.message}
+        </div>
+      </div>
+    </div>
+
+    ${(carrier || trackingNumber) ? `
+      <!-- Courier / Dispatch Tracking Box -->
+      <div style="padding:16px 24px 0 24px;">
+        <div style="padding:16px;background-color:#15161f;border:1px solid #2a2b3a;border-radius:12px;">
+          <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#3B82F6;margin-bottom:8px;">
+            🚚 COURIER & TRACKING DETAILS
+          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;font-size:13px;">
+            ${carrier ? `<tr><td style="color:#888894;padding:4px 0;">Courier Partner:</td><td style="color:#ffffff;padding:4px 0;text-align:right;font-weight:700;">${carrier}</td></tr>` : ''}
+            ${trackingNumber ? `<tr><td style="color:#888894;padding:4px 0;">Tracking Number / AWB:</td><td style="color:#FF1E27;padding:4px 0;text-align:right;font-weight:900;font-family:monospace;">${trackingNumber}</td></tr>` : ''}
+            ${estimatedDeliveryDate ? `<tr><td style="color:#888894;padding:4px 0;">Estimated Delivery:</td><td style="color:#ffffff;padding:4px 0;text-align:right;font-weight:700;">${mailDate(estimatedDeliveryDate)}</td></tr>` : ''}
+          </table>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Key Meta Strip (Order ID, Status, Payment) -->
+    <div style="padding:16px 24px 0 24px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;background-color:#171822;border:1px solid #252634;border-radius:12px;overflow:hidden;">
+        <tr>
+          <td style="padding:14px;text-align:center;border-right:1px solid #252634;width:33%;">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#888894;">Order ID</div>
+            <div style="font-size:12px;font-weight:900;color:#FF1E27;font-family:monospace;margin-top:4px;">${orderNumber}</div>
+          </td>
+          <td style="padding:14px;text-align:center;border-right:1px solid #252634;width:33%;">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#888894;">Current Status</div>
+            <div style="font-size:11px;font-weight:900;color:#ffffff;text-transform:uppercase;margin-top:4px;">${readableStatus}</div>
+          </td>
+          <td style="padding:14px;text-align:center;width:33%;">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.8px;color:#888894;">Payment</div>
+            <div style="font-size:11px;font-weight:800;color:${isPaymentPending ? '#F59E0B' : '#10B981'};text-transform:uppercase;margin-top:4px;">
+              ${isCod ? (isPaymentPending ? 'COD (Due)' : 'COD (Paid)') : 'Online (Paid)'}
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Items List -->
+    <div style="padding:20px 24px 10px 24px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;margin-bottom:12px;border-bottom:1px solid #22232e;padding-bottom:8px;">
+        <tr>
+          <td style="color:#ffffff;font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;">ORDER ITEMS</td>
+          <td style="text-align:right;color:#888894;font-size:11px;font-weight:700;">${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}</td>
+        </tr>
+      </table>
+      ${block.itemsHtml}
+    </div>
+
+    <!-- Pricing Breakdown -->
+    <div style="padding:16px 24px 20px 24px;background-color:#15161f;border-top:1px solid #22232e;border-bottom:1px solid #22232e;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;font-size:13px;">
+        <tr>
+          <td style="color:#9ca3af;padding:5px 0;font-weight:600;">Items Subtotal</td>
+          <td style="color:#ffffff;padding:5px 0;text-align:right;font-weight:700;font-family:monospace;">${inrFormat(subtotal)}</td>
+        </tr>
+        ${discount > 0 ? `
+        <tr>
+          <td style="color:#10B981;padding:5px 0;font-weight:600;">Special Discount</td>
+          <td style="color:#10B981;padding:5px 0;text-align:right;font-weight:700;font-family:monospace;">-${inrFormat(discount)}</td>
+        </tr>` : ''}
+        <tr>
+          <td style="color:#9ca3af;padding:5px 0;font-weight:600;">Shipping Fee</td>
+          <td style="color:#ffffff;padding:5px 0;text-align:right;font-weight:700;">
+            ${shippingFee === 0 ? '<span style="color:#10B981;font-weight:800;">FREE</span>' : '<span style="font-family:monospace;">' + inrFormat(shippingFee) + '</span>'}
+          </td>
+        </tr>
+        ${codSurcharge > 0 ? `
+        <tr>
+          <td style="color:#9ca3af;padding:5px 0;font-weight:600;">COD Surcharge</td>
+          <td style="color:#ffffff;padding:5px 0;text-align:right;font-weight:700;font-family:monospace;">${inrFormat(codSurcharge)}</td>
+        </tr>` : ''}
+        <tr>
+          <td colspan="2" style="padding:8px 0;"><div style="height:1px;background-color:#262734;"></div></td>
+        </tr>
+        <tr>
+          <td style="color:#ffffff;font-size:14px;font-weight:900;padding:6px 0;text-transform:uppercase;letter-spacing:0.5px;">Total Payable</td>
+          <td style="color:#FF1E27;font-size:18px;font-weight:900;padding:6px 0;text-align:right;font-family:monospace;">${inrFormat(total)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Delivery Destination -->
+    <div style="padding:24px;">
+      <div style="color:#ffffff;font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:12px;">
+        DELIVERY DESTINATION
+      </div>
+      <div style="background-color:#171822;border:1px solid #252634;border-radius:12px;padding:18px;font-size:13px;line-height:1.6;color:#9ca3af;">
+        <div style="color:#ffffff;font-size:14px;font-weight:800;text-transform:uppercase;margin-bottom:4px;">
+          ${shippingAddress.fullName || 'Valued Athlete'}
+        </div>
+        ${shippingAddress.phone ? `<div style="color:#d1d5db;font-size:12px;margin-bottom:6px;">📞 ${shippingAddress.phone}</div>` : ''}
+        <div style="color:#9ca3af;font-size:12px;">
+          ${shippingAddress.street || ''}<br>
+          ${shippingAddress.city || ''}${shippingAddress.city && shippingAddress.state ? ', ' : ''}${shippingAddress.state || ''} &bull; <strong style="color:#ffffff;">${shippingAddress.pincode || ''}</strong><br>
+          ${shippingAddress.country || 'India'}
+        </div>
+      </div>
+    </div>`;
+
+  const html = buildBrandShell({
+    badgeText: meta.badgeText,
+    badgeTone: meta.badgeTone,
+    heading: meta.heading,
+    intro: meta.intro,
+    bodyHtml,
+    hasLogo: hasLogoAttachment,
+  });
+
+  try {
+    const transporter = await getTransporter();
+    if (transporter) {
+      await transporter.sendMail({
+        from: `"AVN Athletics" <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+        to: email,
+        subject: `Order Update: #${orderNumber} is now ${readableStatus} | AVN Athletics`,
+        attachments,
+        html,
+      });
+      console.log(`✉️ [AVN Athletics] Order status update (${newStatus}) email dispatched to ${email}`);
+      return { success: true, method: 'smtp' };
+    }
+  } catch (error) {
+    console.warn('⚠️ Order status update email SMTP dispatch fallback:', error.message);
+  }
+
+  console.log(`✉️ [AVN Athletics] Order status update email logged for ${email} (#${orderNumber} -> ${readableStatus})`);
   return { success: true, method: 'console' };
 }

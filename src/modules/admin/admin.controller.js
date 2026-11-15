@@ -15,6 +15,24 @@ import { env } from '../../config/env.js';
 import { parsePagination } from '../../utils/pagination.js';
 import { normalizePhone, INDIAN_MOBILE_REGEX } from '../../utils/phone.js';
 
+/**
+ * Statuses whose payment counts as collected revenue.
+ *
+ * Deliberately a single list: this used to be duplicated as an inline array in two places, and the
+ * duplicate stopped at 'delivered' — so an order that was out for delivery vanished from net revenue
+ * and from the captured-transaction count until it was marked delivered.
+ *
+ * RETURN_REQUESTED and RETURNED are excluded on purpose: the money is still held but a refund is
+ * pending, and including them would overstate revenue for orders that are on their way back.
+ */
+const REVENUE_ORDER_STATUSES = [
+  ORDER_STATUS.PAID_CONFIRMED,
+  ORDER_STATUS.PROCESSING,
+  ORDER_STATUS.SHIPPED,
+  ORDER_STATUS.OUT_FOR_DELIVERY,
+  ORDER_STATUS.DELIVERED,
+];
+
 // Entity fallbacks for each domain
 const DOMAIN_TO_ENTITIES = {
   PRODUCTS: ['Product'],
@@ -104,7 +122,7 @@ export const getActivityLogs = asyncHandler(async (req, res) => {
     }
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 50 });
+  const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 50 });
   const skip = (pageNum - 1) * limitNum;
 
   const [logs, total] = await Promise.all([
@@ -182,6 +200,7 @@ export const getAdminAnalytics = asyncHandler(async (req, res) => {
               ORDER_STATUS.PAID_CONFIRMED,
               ORDER_STATUS.PROCESSING,
               ORDER_STATUS.SHIPPED,
+              ORDER_STATUS.OUT_FOR_DELIVERY,
               ORDER_STATUS.DELIVERED,
             ],
           },
@@ -251,7 +270,7 @@ export const getUsers = asyncHandler(async (req, res) => {
     ];
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
+  const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [users, total] = await Promise.all([
@@ -534,7 +553,7 @@ export const getPaymentsList = asyncHandler(async (req, res) => {
     ];
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
+  const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total, allOrders] = await Promise.all([
@@ -550,7 +569,7 @@ const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { de
 
   const payments = orders.map((ord) => {
     const isRefunded = ord.orderStatus === 'refunded' || ord.paymentInfo?.paymentStatus === 'refunded';
-    const isSuccess = ['paid_confirmed', 'processing', 'shipped', 'delivered'].includes(ord.orderStatus) && !isRefunded;
+    const isSuccess = REVENUE_ORDER_STATUSES.includes(ord.orderStatus) && !isRefunded;
 
     // Classify the transaction for the Finance table / detail window
     let paymentType = 'Order Payment';
@@ -574,10 +593,10 @@ const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { de
       // Masked once the payout is settled (order refunded).
       refundAccount:
         ord.returnRequest?.refundAccount &&
-        (ord.returnRequest.refundAccount.upiId || ord.returnRequest.refundAccount.accountNumber)
+          (ord.returnRequest.refundAccount.upiId || ord.returnRequest.refundAccount.accountNumber)
           ? (isRefunded
-              ? maskRefundAccount(ord.returnRequest.refundAccount)
-              : ord.returnRequest.refundAccount)
+            ? maskRefundAccount(ord.returnRequest.refundAccount)
+            : ord.returnRequest.refundAccount)
           : null,
       paymentOrderId: ord.paymentInfo?.paymentOrderId || 'N/A',
       provider: ord.paymentInfo?.provider || 'razorpay',
@@ -619,7 +638,7 @@ const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { de
     if (o.orderStatus === 'refunded' || o.paymentInfo?.paymentStatus === 'refunded') {
       totalRefunds += payable;
       refundedTransactions++;
-    } else if (['paid_confirmed', 'processing', 'shipped', 'delivered'].includes(o.orderStatus)) {
+    } else if (REVENUE_ORDER_STATUSES.includes(o.orderStatus)) {
       netRevenue += payable;
       capturedTransactions++;
     }
@@ -701,7 +720,7 @@ export const getReturnsAndCancellations = asyncHandler(async (req, res) => {
     ];
   }
 
-const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
+  const { page: pageNum, limit: limitNum } = parsePagination({ page, limit }, { defaultLimit: 20 });
   const skip = (pageNum - 1) * limitNum;
 
   const [orders, total, allRelevant] = await Promise.all([

@@ -298,6 +298,32 @@ export const updateProfile = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Normalise map coordinates coming from the address form.
+ *
+ * Returns:
+ *   undefined — nothing was sent, leave any existing pin untouched
+ *   null      — something was sent but it is not a usable coordinate pair
+ *   { latitude, longitude } — valid, both finite and inside the real-world ranges
+ */
+const parseAddressLocation = (location) => {
+  if (location === undefined || location === null) return undefined;
+  if (typeof location !== 'object') return null;
+
+  const latitude = Number(location.latitude);
+  const longitude = Number(location.longitude);
+
+  const valid =
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude) &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180;
+
+  return valid ? { latitude, longitude } : null;
+};
+
+/**
  * Add address (Customer only)
  */
 export const addAddress = asyncHandler(async (req, res) => {
@@ -305,6 +331,11 @@ export const addAddress = asyncHandler(async (req, res) => {
   if (!user) throw ApiError.notFound('Customer not found');
 
   const { title, fullName, phone, street, city, state, pincode, country, isDefault } = req.body;
+
+  const location = parseAddressLocation(req.body.location);
+  if (location === null) {
+    throw ApiError.badRequest('Invalid map location: latitude and longitude must be valid coordinates.');
+  }
 
   if (isDefault) {
     user.addresses.forEach((addr) => { addr.isDefault = false; });
@@ -321,6 +352,7 @@ export const addAddress = asyncHandler(async (req, res) => {
     state,
     pincode,
     country: country || 'India',
+    ...(location ? { location } : {}),
     isDefault: req.body.isDefault,
   });
 
@@ -343,7 +375,17 @@ export const updateAddress = asyncHandler(async (req, res) => {
     user.addresses.forEach((addr) => { addr.isDefault = false; });
   }
 
-  Object.assign(address, req.body);
+  const location = parseAddressLocation(req.body.location);
+  if (location === null) {
+    throw ApiError.badRequest('Invalid map location: latitude and longitude must be valid coordinates.');
+  }
+
+  // `location` is applied separately: Object.assign would copy a malformed object straight in,
+  // and an absent one must not wipe a pin that is already saved.
+  const { location: _ignoredLocation, ...rest } = req.body;
+  Object.assign(address, rest);
+  if (location) address.location = location;
+
   await user.save();
   return ApiResponse.success(res, { addresses: user.addresses }, 'Address updated successfully');
 });

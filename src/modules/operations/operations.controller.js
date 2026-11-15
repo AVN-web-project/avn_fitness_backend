@@ -2,11 +2,16 @@ import { Order } from '../../models/order.model.js';
 import { Shipment } from '../../models/shipment.model.js';
 import { Payment } from '../../models/payment.model.js';
 import { Product } from '../../models/product.model.js';
+import { User } from '../../models/user.model.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
 import { ApiError } from '../../utils/apiError.js';
 import { asyncHandler } from '../../utils/asyncHandler.js';
 import { validateOrderTransition } from '../../utils/orderStateMachine.js';
-import { sendRefundConfirmationEmail, sendReturnStatusEmail } from '../../utils/email.service.js';
+import {
+  sendRefundConfirmationEmail,
+  sendReturnStatusEmail,
+  sendOrderStatusUpdateEmail,
+} from '../../utils/email.service.js';
 import { recordActivityLog } from '../../middlewares/activityLogger.middleware.js';
 import { parsePagination } from '../../utils/pagination.js';
 import {
@@ -103,6 +108,23 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
+  // Notify customer via email with order details and current status
+  if (previousStatus !== status) {
+    try {
+      const userDoc = await User.findById(order.user).select('name email').lean();
+      const customerEmail = userDoc?.email;
+      if (customerEmail) {
+        await sendOrderStatusUpdateEmail(customerEmail, order, {
+          previousStatus,
+          newStatus: status,
+          note,
+        });
+      }
+    } catch (emailErr) {
+      console.warn('⚠️ Order status update email notification failed:', emailErr.message);
+    }
+  }
+
   await recordActivityLog({
     user: req.user,
     action: ACTIVITY_ACTIONS.ORDER_STATUS_CHANGED,
@@ -175,6 +197,24 @@ export const updateShippingAndDispatch = asyncHandler(async (req, res) => {
     ipAddress: req.ip,
   });
 
+  // Notify customer via email with shipment & tracking details
+  try {
+    const userDoc = await User.findById(order.user).select('name email').lean();
+    const customerEmail = userDoc?.email;
+    if (customerEmail) {
+      await sendOrderStatusUpdateEmail(customerEmail, order, {
+        previousStatus,
+        newStatus: ORDER_STATUS.SHIPPED,
+        carrier,
+        trackingNumber,
+        estimatedDeliveryDate,
+        note: notes || `Dispatched via ${carrier} (Tracking: ${trackingNumber})`,
+      });
+    }
+  } catch (emailErr) {
+    console.warn('⚠️ Dispatch status update email notification failed:', emailErr.message);
+  }
+
   return ApiResponse.success(res, { order }, 'Order marked as Shipped and tracking recorded');
 });
 
@@ -223,6 +263,21 @@ export const confirmDelivery = asyncHandler(async (req, res) => {
     details: { orderNumber: order.orderNumber },
     ipAddress: req.ip,
   });
+
+  // Notify customer via email that package has been delivered
+  try {
+    const userDoc = await User.findById(order.user).select('name email').lean();
+    const customerEmail = userDoc?.email;
+    if (customerEmail) {
+      await sendOrderStatusUpdateEmail(customerEmail, order, {
+        previousStatus,
+        newStatus: ORDER_STATUS.DELIVERED,
+        note: 'Delivery confirmed successfully. Thank you for choosing AVN Athletics!',
+      });
+    }
+  } catch (emailErr) {
+    console.warn('⚠️ Delivery status update email notification failed:', emailErr.message);
+  }
 
   return ApiResponse.success(res, { order }, 'Order marked as Delivered');
 });
