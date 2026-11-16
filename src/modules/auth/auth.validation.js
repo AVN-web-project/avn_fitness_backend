@@ -69,6 +69,13 @@ export const addressSchema = z.object({
     // Optional and free-form: it is filled from the pincode master, and zod strips unknown keys —
     // without this the field would never reach the controller.
     district: z.string().trim().max(120).optional().default(''),
+    location: z
+      .object({
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
+      })
+      .nullable()
+      .optional(),
     city: z.string().min(2, 'City is required'),
     state: z.string().min(2, 'State is required'),
     pincode: indianPincode,

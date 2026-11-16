@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { INDIAN_MOBILE_REGEX, INDIAN_PINCODE_REGEX } from '../utils/phone.js';
+import { INDIAN_MOBILE_REGEX, INDIAN_PINCODE_REGEX, normalizePhone } from '../utils/phone.js';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -14,6 +14,11 @@ const addressSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      // `set` runs BEFORE validation, so "+91 98765 43210" and "098765 43210" are reduced to
+      // 9876543210 and pass the match rule. Without it a country-code prefix failed validation,
+      // and because Mongoose validates the whole user document on save, that blocked every
+      // later address from being added.
+      set: normalizePhone,
       match: [INDIAN_MOBILE_REGEX, 'Enter a valid 10-digit mobile number'],
     },
     street: { type: String, required: true, trim: true },
@@ -27,6 +32,12 @@ const addressSchema = new mongoose.Schema(
       required: true,
       trim: true,
       match: [INDIAN_PINCODE_REGEX, 'Enter a valid 6-digit pincode'],
+    },
+    // Coordinates pinned on the map. Null when the customer never moved the pin — the address
+    // form only sends a location once the pin is placed.
+    location: {
+      latitude: { type: Number, default: null, min: -90, max: 90 },
+      longitude: { type: Number, default: null, min: -180, max: 180 },
     },
     country: { type: String, default: 'India', trim: true },
     isDefault: { type: Boolean, default: false },

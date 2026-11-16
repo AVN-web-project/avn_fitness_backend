@@ -5,6 +5,7 @@ import { User } from '../../models/user.model.js';
 import { Staff } from '../../models/staff.model.js';
 import { Admin } from '../../models/admin.model.js';
 import { Otp } from '../../models/otp.model.js';
+import { normalizePhone } from '../../utils/phone.js';
 import { sendOtpEmail, sendPasswordResetEmail } from '../../utils/email.service.js';
 import { ApiError } from '../../utils/apiError.js';
 import { ApiResponse } from '../../utils/apiResponse.js';
@@ -276,7 +277,9 @@ export const updateProfile = asyncHandler(async (req, res) => {
   }
 
   if (phone !== undefined) {
-    const normalizedPhone = phone.trim();
+    // Normalise first, exactly as the address form does — otherwise a country-code prefix
+    // fails a rule the value would pass once reduced to ten digits.
+    const normalizedPhone = normalizePhone(phone);
 
     if (normalizedPhone && !/^[6-9]\d{9}$/.test(normalizedPhone)) {
       throw ApiError.badRequest('Please enter a valid 10-digit mobile number.');
@@ -298,6 +301,36 @@ export const updateProfile = asyncHandler(async (req, res) => {
 });
 
 /**
+ * Three states, deliberately:
+ *   undefined -> the request did not mention a location, leave any stored pin alone
+ *   null      -> the request sent something invalid, reject with 400
+ *   object    -> a valid pair, save it
+ *
+ * `Number(null) === 0` is why the null check comes first — coercing a missing coordinate
+ * produced a phantom pin at (0, 0) in the Gulf of Guinea.
+ */
+const parseAddressLocation = (value) => {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+
+  const latitude = Number(value?.latitude);
+  const longitude = Number(value?.longitude);
+
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
+    return null;
+  }
+
+  return { latitude, longitude };
+};
+
+/**
  * Add address (Customer only)
  */
 export const addAddress = asyncHandler(async (req, res) => {
@@ -312,6 +345,11 @@ export const addAddress = asyncHandler(async (req, res) => {
     req.body.isDefault = true;
   }
 
+  const location = parseAddressLocation(req.body.location);
+  if (location === null) {
+    throw ApiError.badRequest('The pinned location is not a valid latitude/longitude pair.');
+  }
+
   user.addresses.push({
     title: title || 'Home',
     fullName,
@@ -323,6 +361,7 @@ export const addAddress = asyncHandler(async (req, res) => {
     pincode,
     country: country || 'India',
     isDefault: req.body.isDefault,
+    ...(location ? { location } : {}),
   });
 
   await user.save();
@@ -344,7 +383,19 @@ export const updateAddress = asyncHandler(async (req, res) => {
     user.addresses.forEach((addr) => { addr.isDefault = false; });
   }
 
-  Object.assign(address, req.body);
+  const location = parseAddressLocation(req.body.location);
+  if (location === null) {
+    throw ApiError.badRequest('The pinned location is not a valid latitude/longitude pair.');
+  }
+
+  // Applied separately from the bulk assign, so a malformed object cannot be copied in and an
+  // absent one cannot wipe a stored pin.
+  const { location: _ignored, ...rest } = req.body;
+  Object.assign(address, rest);
+  if (location !== undefined) {
+    address.location = location;
+  }
+
   await user.save();
   return ApiResponse.success(res, { addresses: user.addresses }, 'Address updated successfully');
 });
